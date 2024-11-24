@@ -57,7 +57,10 @@ class LoginActivity : ComponentActivity() {
             BottlecollectionsystemandroidapplicationTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     LoginComposable(
-                        modifier = Modifier.padding(innerPadding), handleLogin = handleLogin
+                        modifier = Modifier.padding(innerPadding),
+                        handleLogin = handleLogin,
+                        navigateBack = {},
+                        navigateToRegister = { }
                     )
                 }
             }
@@ -72,7 +75,10 @@ class LoginActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginComposable(
-    modifier: Modifier = Modifier, handleLogin: (email: String, password: String) -> Unit
+    modifier: Modifier = Modifier,
+    handleLogin: (email: String, password: String) -> Unit,
+    navigateBack: () -> Unit,
+    navigateToRegister: () -> Unit
 ) {
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
@@ -103,10 +109,7 @@ fun LoginComposable(
         ) {
             IconButton(
                 onClick = {
-                    if (context is ComponentActivity) {
-                        context.finish()
-                    }
-                }, modifier = Modifier.size(50.dp)
+                    navigateBack() }, modifier = Modifier.size(50.dp)
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.back_arrow),
@@ -210,6 +213,9 @@ fun LoginComposable(
 @Composable
 fun LoginComposablePreview() {
     BottlecollectionsystemandroidapplicationTheme {
-        LoginComposable(handleLogin = { _: String, _: String -> })
+        LoginComposable(
+            handleLogin = { _: String, _: String -> },
+            navigateBack = { },
+            navigateToRegister = {  })
     }
 }
