@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -97,7 +98,7 @@ fun LoginComposable(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFECF1DA)),
+            .background(color = MaterialTheme.colorScheme.primary),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
@@ -105,14 +106,14 @@ fun LoginComposable(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(horizontal = 10.dp, vertical = 25.dp)
         ) {
             IconButton(
                 onClick = {
                     navigateBack() }, modifier = Modifier.size(50.dp)
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.back_arrow),
+                    painter = painterResource(id = R.drawable.arrow_back_24),
                     contentDescription = "Back Arrow"
                 )
             }
@@ -124,7 +125,7 @@ fun LoginComposable(
             text = "Login",
             fontSize = 48.sp,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.secondary
         )
 
         Box(
@@ -173,6 +174,10 @@ fun LoginComposable(
 
                 Button(
                     onClick = handleLoginClick,
+                    colors = ButtonDefaults.buttonColors (
+                        containerColor = MaterialTheme.colorScheme.secondary,
+                        contentColor = MaterialTheme.colorScheme.surface
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
@@ -194,7 +199,8 @@ fun LoginComposable(
                         if (context is ComponentActivity) {
                             context.finish()
                         }
-                    }
+                    },
+                    color = MaterialTheme.colorScheme.tertiary
                 )
             }
         }

@@ -1,139 +1,233 @@
 package com.cynthia.bottle_collection_system_android_application
 
+import android.content.Intent
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.cynthia.bottle_collection_system_android_application.ui.theme.BottlecollectionsystemandroidapplicationTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterComposable(onSubmit: () -> Unit) {
-    var name by remember { mutableStateOf("") }
+fun RegisterComposable(
+    modifier: Modifier = Modifier,
+    handleRegister: (String, String, String, String) -> Unit,
+    navigateBack: () -> Unit,
+    navigateToRegister: () -> Unit
+) {
+    val context = LocalContext.current
     var email by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("")  }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    var isButtonEnabled by remember { mutableStateOf(true) }
 
-    Scaffold(
-        topBar = {
-            Text(
-                text = "Register",
-                fontWeight = FontWeight.Bold,
-                fontSize = 32.sp,
-                modifier = Modifier.fillMaxWidth().padding(20.dp),
-                textAlign = TextAlign.Center
-            )
-        }
-    ) { paddingValues ->
-        Column(
+    // move to ViewModel
+    val handleRegisterClick = {
+        // Validate data
+        isButtonEnabled = false
+        handleRegister(name, email, password, confirmPassword)
+        isButtonEnabled = true // Re-enable the button after the task completes
+    }
+
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(color = MaterialTheme.colorScheme.primary),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
+    ) {
+
+        Row(
             modifier = Modifier
-                .padding(paddingValues)
-                .padding(16.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 25.dp)
         ) {
-            TextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Name") },
-                modifier = Modifier.fillMaxWidth()
-                    .background(color = Color(0xFF4CAF50),shape = RoundedCornerShape(10.dp))
-                    .border(2.dp, Color.Black, shape = RoundedCornerShape(10.dp)),
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            TextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-
-                modifier = Modifier.fillMaxWidth()
-                    .background(color = Color(0xFF4CAF50),shape = RoundedCornerShape(10.dp))
-                    .border(2.dp, Color.Black, shape = RoundedCornerShape(10.dp)),
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            TextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Password") },
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-
-                modifier = Modifier.fillMaxWidth()
-                    .background(color = Color(0xFF4CAF50),shape = RoundedCornerShape(10.dp))
-                    .border(2.dp, Color.Black, shape = RoundedCornerShape(10.dp)),
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            TextField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
-                label = { Text("Confirm Password") },
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-
-                modifier = Modifier.fillMaxWidth()
-                    .background(color = Color(0xFF4CAF50),shape = RoundedCornerShape(10.dp))
-                    .border(2.dp, Color.Black, shape = RoundedCornerShape(10.dp)),
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
+            IconButton(
                 onClick = {
-                    if (password == confirmPassword) {
-                        onSubmit() 
-                    } else {
-                        // have to clear the text field a message should pop
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-                    .background(color = Color(0xFF4CAF50),shape = RoundedCornerShape(10.dp))
-                    .border(2.dp, Color.Black, shape = RoundedCornerShape(10.dp)),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF4CAF50), // Button background color
-                    contentColor = Color.White // Button text color
-                )
+                    navigateBack() }, modifier = Modifier.size(50.dp)
             ) {
-                Text("Submit")
+                Icon(
+                    painter = painterResource(id = R.drawable.arrow_back_24),
+                    contentDescription = "Back Arrow"
+                )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+        }
 
-            // Link to Login
-            TextButton(
-                onClick = { onSubmit() },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+        // Heading Text
+        Text(
+            text = "Register",
+            fontSize = 48.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.secondary
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+                .border(
+                    2.dp, Color.Gray, shape = RoundedCornerShape(8.dp)
+                ) // Border with color, width, and rounded corners
+                .padding(16.dp) // Optional padding inside the Box
+        ) {
+            Column(
+                verticalArrangement = Arrangement.SpaceAround,
+                modifier = Modifier.fillMaxSize()
             ) {
+                TextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Name") },
+                    placeholder = { Text("Name")},
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color.Transparent, // Transparent background
+                        focusedIndicatorColor = Color.Green, // Focused border color
+                        unfocusedIndicatorColor = Color.Gray, // Unfocused border color
+                        focusedLabelColor = Color.Green, // Focused label color
+                        unfocusedLabelColor = Color.Gray, // Unfocused label color
+                    ),
+                )
+                TextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Email") },
+                    placeholder = { Text("Email") },
+
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color.Transparent, // Transparent background
+                        focusedIndicatorColor = Color.Green, // Focused border color
+                        unfocusedIndicatorColor = Color.Gray, // Unfocused border color
+                        focusedLabelColor = Color.Green, // Focused label color
+                        unfocusedLabelColor = Color.Gray, // Unfocused label color
+                    ),
+                )
+
+                TextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Password") },
+                    placeholder = { Text("Password") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color.Transparent, // Transparent background
+                        focusedIndicatorColor = Color.Green, // Focused border color
+                        unfocusedIndicatorColor = Color.Gray, // Unfocused border color
+                        focusedLabelColor = Color.Green, // Focused label color
+                        unfocusedLabelColor = Color.Gray, // Unfocused label color
+                    ),
+                )
+
+                TextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    label = { Text("Confirm Password") },
+                    placeholder = { Text("Confirm Password") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color.Transparent, // Transparent background
+                        focusedIndicatorColor = Color.Green, // Focused border color
+                        unfocusedIndicatorColor = Color.Gray, // Unfocused border color
+                        focusedLabelColor = Color.Green, // Focused label color
+                        unfocusedLabelColor = Color.Gray, // Unfocused label color
+                    ),
+                )
+
+                Button (
+                    onClick =  {
+                        if (password == confirmPassword) {
+                            print("pass")
+//                            Go to home page
+                        } else {
+//                            have to clear the text field a message should pop
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors (
+                        containerColor = MaterialTheme.colorScheme.secondary,
+                        contentColor = MaterialTheme.colorScheme.surface
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ){
+                    Text("Register" )
+                }
+
                 Text(
-                    text = "Already have an account? Login here",
-                    color = Color(0xFF4CAF50),
-                    textAlign = TextAlign.Center
+                    text = "Forgot Password?",
+                    fontSize = 16.sp,
+
+                )
+
+                Text(
+                    text = "Have an account? Login.",
+                    fontSize = 16.sp,
+                    modifier = Modifier.clickable {
+                        val intent = Intent(context, LoginActivity::class.java)
+                        context.startActivity(intent)
+                        if (context is ComponentActivity) {
+                            context.finish()
+                        }
+                    },
+                    color = MaterialTheme.colorScheme.tertiary
                 )
             }
         }
+
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
-fun previewFun()
-{
-    RegisterComposable(
-        onSubmit = {}
-    )
+fun RegisterComposablePreview() {
+    BottlecollectionsystemandroidapplicationTheme {
+        RegisterComposable(
+            handleRegister = { _: String, _: String, _: String, _: String  -> },
+            navigateBack = { },
+            navigateToRegister = {  })
+    }
 }

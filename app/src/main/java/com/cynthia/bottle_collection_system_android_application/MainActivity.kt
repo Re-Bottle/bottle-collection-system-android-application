@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -67,12 +69,11 @@ fun AppNavGraph() {
 
         composable("register") {
             RegisterComposable(
-                onSubmit = {
-                    // Navigate to the login screen after successful registration
-                    navController.navigate("login") {
-                        popUpTo("register") { inclusive = true }
-                    }
-                }
+                handleRegister = { name, email, password, confirmPass ->
+                    // Perform login logic, such as authentication
+                },
+                navigateBack = { navController.popBackStack() }, // Add this
+                navigateToRegister = { navController.navigate("register") }
             )
         }
     }
@@ -121,6 +122,10 @@ fun WelcomeComposable(
         // Login Button
         Button(
             onClick = onNavigateToLogin,
+            colors = ButtonDefaults.buttonColors (
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.surface
+            ),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
@@ -131,6 +136,10 @@ fun WelcomeComposable(
         // Register Button
         Button(
             onClick = onNavigateToRegister, // Navigate using Jetpack Navigation
+            colors = ButtonDefaults.buttonColors (
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.secondary
+            ),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
