@@ -1,4 +1,4 @@
-package com.cynthia.bottle_collection_system_android_application
+package com.cynthia.bottle_collection_system_android_application.viewmodel
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -30,6 +30,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.cynthia.bottle_collection_system_android_application.R
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

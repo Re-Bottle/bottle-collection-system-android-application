@@ -1,11 +1,7 @@
-package com.cynthia.bottle_collection_system_android_application
+package com.cynthia.bottle_collection_system_android_application.viewmodel
 
 import android.content.Intent
-import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,7 +20,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -36,61 +31,35 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.cynthia.bottle_collection_system_android_application.R
 import com.cynthia.bottle_collection_system_android_application.ui.theme.BottlecollectionsystemandroidapplicationTheme
-
-class LoginActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-
-        val handleLogin: (String, String) -> Unit = { email, password ->
-            handleLogin(email, password)
-        }
-
-        setContent {
-            BottlecollectionsystemandroidapplicationTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    LoginComposable(
-                        modifier = Modifier.padding(innerPadding),
-                        handleLogin = handleLogin,
-                        navigateBack = {},
-                        navigateToRegister = { }
-                    )
-                }
-            }
-        }
-    }
-
-    fun handleLogin(email: String, password: String) {
-
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginComposable(
+fun RegisterComposable(
     modifier: Modifier = Modifier,
-    handleLogin: (email: String, password: String) -> Unit,
+    handleRegister: (String, String, String, String) -> Unit,
     navigateBack: () -> Unit,
     navigateToRegister: () -> Unit
 ) {
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("")  }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var isButtonEnabled by remember { mutableStateOf(true) }
 
     // move to ViewModel
-    val handleLoginClick = {
+    val handleRegisterClick = {
         // Validate data
         isButtonEnabled = false
-        handleLogin(email, password)
+        handleRegister(name, email, password, confirmPassword)
         isButtonEnabled = true // Re-enable the button after the task completes
     }
 
@@ -122,7 +91,7 @@ fun LoginComposable(
 
         // Heading Text
         Text(
-            text = "Login",
+            text = "Register",
             fontSize = 48.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.secondary
@@ -130,7 +99,7 @@ fun LoginComposable(
 
         Box(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .padding(16.dp)
                 .border(
                     2.dp, Color.Gray, shape = RoundedCornerShape(8.dp)
@@ -138,12 +107,31 @@ fun LoginComposable(
                 .padding(16.dp) // Optional padding inside the Box
         ) {
             Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.SpaceAround,
+                modifier = Modifier.fillMaxSize()
             ) {
+                TextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Name") },
+                    placeholder = { Text("Name")},
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color.Transparent, // Transparent background
+                        focusedIndicatorColor = Color.Green, // Focused border color
+                        unfocusedIndicatorColor = Color.Gray, // Unfocused border color
+                        focusedLabelColor = Color.Green, // Focused label color
+                        unfocusedLabelColor = Color.Gray, // Unfocused label color
+                    ),
+                )
                 TextField(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text("Email") },
+                    placeholder = { Text("Email") },
+
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 8.dp),
@@ -160,6 +148,7 @@ fun LoginComposable(
                     value = password,
                     onValueChange = { password = it },
                     label = { Text("Password") },
+                    placeholder = { Text("Password") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 8.dp),
@@ -172,8 +161,32 @@ fun LoginComposable(
                     ),
                 )
 
-                Button(
-                    onClick = handleLoginClick,
+                TextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    label = { Text("Confirm Password") },
+                    placeholder = { Text("Confirm Password") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color.Transparent, // Transparent background
+                        focusedIndicatorColor = Color.Green, // Focused border color
+                        unfocusedIndicatorColor = Color.Gray, // Unfocused border color
+                        focusedLabelColor = Color.Green, // Focused label color
+                        unfocusedLabelColor = Color.Gray, // Unfocused label color
+                    ),
+                )
+
+                Button (
+                    onClick =  {
+                        if (password == confirmPassword) {
+                            print("pass")
+//                            Go to home page
+                        } else {
+//                            have to clear the text field a message should pop
+                        }
+                    },
                     colors = ButtonDefaults.buttonColors (
                         containerColor = MaterialTheme.colorScheme.secondary,
                         contentColor = MaterialTheme.colorScheme.surface
@@ -181,20 +194,21 @@ fun LoginComposable(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
-                ) {
-                    Text("Login")
+                ){
+                    Text("Register" )
                 }
 
                 Text(
                     text = "Forgot Password?",
                     fontSize = 16.sp,
+
                 )
 
                 Text(
-                    text = "Don’t have an account? Sign up.",
+                    text = "Have an account? Login.",
                     fontSize = 16.sp,
                     modifier = Modifier.clickable {
-                        val intent = Intent(context, SignupActivity::class.java)
+                        val intent = Intent(context, LoginActivity::class.java)
                         context.startActivity(intent)
                         if (context is ComponentActivity) {
                             context.finish()
@@ -204,23 +218,16 @@ fun LoginComposable(
                 )
             }
         }
-        Image(
-            painter = painterResource(id = R.drawable.login_screen_image),
-            contentDescription = "login Screen Bottom Image",
-            modifier = Modifier
-                .fillMaxWidth() // Makes the image take up the entire width
-                .padding(vertical = 16.dp),
-            contentScale = ContentScale.Crop
-        )
+
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun LoginComposablePreview() {
+fun RegisterComposablePreview() {
     BottlecollectionsystemandroidapplicationTheme {
-        LoginComposable(
-            handleLogin = { _: String, _: String -> },
+        RegisterComposable(
+            handleRegister = { _: String, _: String, _: String, _: String  -> },
             navigateBack = { },
             navigateToRegister = {  })
     }

@@ -1,4 +1,4 @@
-package com.cynthia.bottle_collection_system_android_application
+package com.cynthia.bottle_collection_system_android_application.viewmodel
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
