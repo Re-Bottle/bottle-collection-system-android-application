@@ -1,9 +1,5 @@
-package com.cynthia.bottle_collection_system_android_application.viewmodel
+package com.cynthia.bottle_collection_system_android_application
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -26,61 +22,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cynthia.bottle_collection_system_android_application.ui.theme.BottlecollectionsystemandroidapplicationTheme
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.cynthia.bottle_collection_system_android_application.R
-
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            BottlecollectionsystemandroidapplicationTheme {
-                AppNavGraph()
-            }
-        }
-    }
-}
-
-@Composable
-fun AppNavGraph() {
-    val navController: NavHostController = rememberNavController()
-    NavHost(
-        navController = navController,
-        startDestination = "welcome"
-    ) {
-        composable("welcome") {
-            WelcomeComposable(
-                onNavigateToLogin = { navController.navigate("login") },
-                onNavigateToRegister = { navController.navigate("register") }
-            )
-        }
-
-        composable("login") {
-            LoginComposable(
-                handleLogin = { email, password ->
-                    // Perform login logic, such as authentication
-                },
-                navigateBack = { navController.popBackStack() }, // Add this
-                navigateToRegister = { navController.navigate("register") }
-            )
-        }
-
-        composable("register") {
-            RegisterComposable(
-                handleRegister = { name, email, password, confirmPass ->
-                    // Perform login logic, such as authentication
-                },
-                navigateBack = { navController.popBackStack() }, // Add this
-                navigateToRegister = { navController.navigate("register") }
-            )
-        }
-    }
-}
-
-
 
 @Composable
 fun WelcomeComposable(
@@ -123,7 +64,7 @@ fun WelcomeComposable(
         // Login Button
         Button(
             onClick = onNavigateToLogin,
-            colors = ButtonDefaults.buttonColors (
+            colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = MaterialTheme.colorScheme.surface
             ),
@@ -137,7 +78,7 @@ fun WelcomeComposable(
         // Register Button
         Button(
             onClick = onNavigateToRegister, // Navigate using Jetpack Navigation
-            colors = ButtonDefaults.buttonColors (
+            colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = MaterialTheme.colorScheme.secondary
             ),
