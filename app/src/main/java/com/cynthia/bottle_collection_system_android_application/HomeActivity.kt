@@ -1,26 +1,40 @@
 package com.cynthia.bottle_collection_system_android_application
 
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
-import com.cynthia.bottle_collection_system_android_application.ui.theme.BottlecollectionsystemandroidapplicationTheme
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.cynthia.bottle_collection_system_android_application.home.AccountComposable
+import com.cynthia.bottle_collection_system_android_application.home.ScanComposable
+
 
 
 @Composable
-fun HomeComposable(
-    navigateToLogin: () -> Unit, // Call this when user Logs out?
+fun HomeNavGraph(
+    onNavigateToLogin: () -> Unit
 ) {
-    Text(
-        text = "Hello World",
-    )
-}
+    val navController: NavHostController = rememberNavController()
+    NavHost(
+        navController = navController,
+        startDestination = "home"
+    ) {
+        composable("home") {
+            com.cynthia.bottle_collection_system_android_application.home.HomeComposable(
+                navigateBack = { navController.popBackStack() },
+                points = 10,
+            )
+        }
 
-@Preview(showBackground = true)
-@Composable
-fun HomeComposablePreview(
+        composable("account") {
+            AccountComposable(name = "Pearl")
+        }
 
-) {
-    BottlecollectionsystemandroidapplicationTheme {
-        HomeComposable(navigateToLogin = {})
+        composable("scan") {
+            ScanComposable()
+        }
     }
 }
+
+@Composable
+fun HomeComposable() {}

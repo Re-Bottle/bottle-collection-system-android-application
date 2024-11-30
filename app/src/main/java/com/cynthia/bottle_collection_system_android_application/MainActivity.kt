@@ -6,7 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -63,7 +62,6 @@ fun AppNavGraph(mainViewModel: MainViewModel) {
 
         composable("home") {
             HomeComposable(
-                navigateToLogin = { navController.navigate("login") }
             )
         }
     }
