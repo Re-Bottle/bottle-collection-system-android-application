@@ -8,8 +8,6 @@ import androidx.navigation.compose.rememberNavController
 import com.cynthia.bottle_collection_system_android_application.home.AccountComposable
 import com.cynthia.bottle_collection_system_android_application.home.ScanComposable
 
-
-
 @Composable
 fun HomeNavGraph(
     onNavigateToLogin: () -> Unit
