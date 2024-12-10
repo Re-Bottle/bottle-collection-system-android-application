@@ -1,7 +1,6 @@
 package com.cynthia.bottle_collection_system_android_application
 
-import android.content.Intent
-import androidx.activity.ComponentActivity
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,9 +13,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,37 +30,62 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.cynthia.bottle_collection_system_android_application.ui.theme.BottlecollectionsystemandroidapplicationTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
-fun RegisterComposable(
+fun LoginComposable(
     modifier: Modifier = Modifier,
-    handleRegister: (String, String, String, String) -> Unit,
+    handleLogin: (email: String, password: String) -> Unit,
     navigateBack: () -> Unit,
-    navigateToLogin: () -> Unit
+    navigateToRegister: () -> Unit
 ) {
-    val context = LocalContext.current
+    var openAlertDialog by remember { mutableStateOf(false) }
     var email by remember { mutableStateOf("") }
-    var name by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
     var isButtonEnabled by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf("") }
 
     // move to ViewModel
-    val handleRegisterClick = {
+    val handleLoginClick = {
         // Validate data
         isButtonEnabled = false
-        handleRegister(name, email, password, confirmPassword)
+        try {
+            handleLogin(email, password)
+        } catch (e: Exception) {
+            errorMessage = e.message.toString()
+            openAlertDialog = true
+        }
         isButtonEnabled = true // Re-enable the button after the task completes
     }
 
+
+    when {
+        openAlertDialog -> {
+            Dialog(
+                onDismissRequest = {
+                    openAlertDialog = false
+                },
+            ) {
+                Text(errorMessage)
+            }
+            AlertDialog(
+                onDismissRequest = {openAlertDialog = false},
+                confirmButton = { Button(onClick = { openAlertDialog = false }) {
+                    Text("OK")
+                } },
+                title = { Text("An error occurred") },
+                text = { Text(errorMessage) }
+            )
+        }
+    }
 
     Column(
         modifier = modifier
@@ -91,7 +115,7 @@ fun RegisterComposable(
 
         // Heading Text
         Text(
-            text = "Register",
+            text = "Login",
             fontSize = 48.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.secondary
@@ -99,7 +123,7 @@ fun RegisterComposable(
 
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .padding(16.dp)
                 .border(
                     2.dp, Color.Gray, shape = RoundedCornerShape(8.dp)
@@ -107,40 +131,22 @@ fun RegisterComposable(
                 .padding(16.dp) // Optional padding inside the Box
         ) {
             Column(
-                verticalArrangement = Arrangement.SpaceAround,
-                modifier = Modifier.fillMaxSize()
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                TextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Name") },
-                    placeholder = { Text("Name") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                    colors = TextFieldDefaults.textFieldColors(
-                        containerColor = Color.Transparent, // Transparent background
-                        focusedIndicatorColor = Color.Green, // Focused border color
-                        unfocusedIndicatorColor = Color.Gray, // Unfocused border color
-                        focusedLabelColor = Color.Green, // Focused label color
-                        unfocusedLabelColor = Color.Gray, // Unfocused label color
-                    ),
-                )
                 TextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = { Text("Email") },
-                    placeholder = { Text("Email") },
-
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 8.dp),
-                    colors = TextFieldDefaults.textFieldColors(
-                        containerColor = Color.Transparent, // Transparent background
-                        focusedIndicatorColor = Color.Green, // Focused border color
-                        unfocusedIndicatorColor = Color.Gray, // Unfocused border color
-                        focusedLabelColor = Color.Green, // Focused label color
-                        unfocusedLabelColor = Color.Gray, // Unfocused label color
+                    label = { Text("Email") },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Green,
+                        focusedLabelColor = Color.Green,
+                        unfocusedIndicatorColor = Color.Gray,
+                        unfocusedLabelColor = Color.Gray,
+                        unfocusedContainerColor = Color.Transparent
                     ),
                 )
 
@@ -148,45 +154,21 @@ fun RegisterComposable(
                     value = password,
                     onValueChange = { password = it },
                     label = { Text("Password") },
-                    placeholder = { Text("Password") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 8.dp),
-                    colors = TextFieldDefaults.textFieldColors(
-                        containerColor = Color.Transparent, // Transparent background
-                        focusedIndicatorColor = Color.Green, // Focused border color
-                        unfocusedIndicatorColor = Color.Gray, // Unfocused border color
-                        focusedLabelColor = Color.Green, // Focused label color
-                        unfocusedLabelColor = Color.Gray, // Unfocused label color
-                    ),
-                )
-
-                TextField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
-                    label = { Text("Confirm Password") },
-                    placeholder = { Text("Confirm Password") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                    colors = TextFieldDefaults.textFieldColors(
-                        containerColor = Color.Transparent, // Transparent background
-                        focusedIndicatorColor = Color.Green, // Focused border color
-                        unfocusedIndicatorColor = Color.Gray, // Unfocused border color
-                        focusedLabelColor = Color.Green, // Focused label color
-                        unfocusedLabelColor = Color.Gray, // Unfocused label color
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Green,
+                        focusedLabelColor = Color.Green,
+                        unfocusedIndicatorColor = Color.Gray,
+                        unfocusedLabelColor = Color.Gray,
+                        unfocusedContainerColor = Color.Transparent
                     ),
                 )
 
                 Button(
-                    onClick = {
-                        if (password == confirmPassword) {
-                            print("pass")
-//                            Go to home page
-                        } else {
-//                            have to clear the text field a message should pop
-                        }
-                    },
+                    onClick = handleLoginClick,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.secondary,
                         contentColor = MaterialTheme.colorScheme.surface
@@ -195,41 +177,42 @@ fun RegisterComposable(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
                 ) {
-                    Text("Register")
+                    Text("Login")
                 }
 
                 Text(
                     text = "Forgot Password?",
                     fontSize = 16.sp,
-
-                    )
+                )
 
                 Text(
-                    text = "Have an account? Login.",
+                    text = "Don’t have an account? Sign up.",
                     fontSize = 16.sp,
                     modifier = Modifier.clickable {
-                        val intent = Intent(context, LoginActivity::class.java)
-                        context.startActivity(intent)
-                        if (context is ComponentActivity) {
-                            context.finish()
-                        }
+                        navigateToRegister()
                     },
                     color = MaterialTheme.colorScheme.tertiary
                 )
             }
         }
-
+        Image(
+            painter = painterResource(id = R.drawable.login_screen_image),
+            contentDescription = "login Screen Bottom Image",
+            modifier = Modifier
+                .fillMaxWidth() // Makes the image take up the entire width
+                .padding(vertical = 16.dp),
+            contentScale = ContentScale.Crop
+        )
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun RegisterComposablePreview() {
+fun LoginComposablePreview() {
     BottlecollectionsystemandroidapplicationTheme {
-        RegisterComposable(
-            handleRegister = { _: String, _: String, _: String, _: String -> },
+        LoginComposable(
+            handleLogin = { _: String, _: String -> },
             navigateBack = { },
-            navigateToLogin = { },
-        )
+            navigateToRegister = { })
     }
 }

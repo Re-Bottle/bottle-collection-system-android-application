@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,6 +19,7 @@ class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
@@ -44,7 +46,13 @@ fun AppNavGraph(mainViewModel: MainViewModel) {
 
         composable("login") {
             LoginComposable(
-                handleLogin = { email, password -> mainViewModel.login(email, password) },
+                handleLogin = { email, password ->
+                    run {
+                        mainViewModel.login(email, password)
+                        navController.navigate("home")
+
+                    }
+                },
                 navigateBack = { navController.popBackStack() }, // Add this
                 navigateToRegister = { navController.navigate("register") }
             )
@@ -61,7 +69,8 @@ fun AppNavGraph(mainViewModel: MainViewModel) {
         }
 
         composable("home") {
-            HomeComposable(
+            HomeNavGraph(
+                onNavigateToLogin = { navController.navigate("login") }
             )
         }
     }
