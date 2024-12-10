@@ -41,7 +41,9 @@ fun HomeNavGraph(
                 )
             }
             composable("history") {
-                AccountComposable(name = "kenneth")
+                AccountComposable(
+                    navigateBack = { navController.popBackStack() },
+                )
             }
 
             composable("scan") {
@@ -49,7 +51,9 @@ fun HomeNavGraph(
             }
 
             composable("account") {
-                AccountComposable(name = "Pearl")
+                AccountComposable(
+                    navigateBack = { navController.popBackStack() },
+                )
             }
 
 
