@@ -1,12 +1,16 @@
 package com.cynthia.bottle_collection_system_android_application.home
 
 
-import android.Manifest
-import android.content.pm.PackageManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import android.util.Log
+import android.util.Size
+import androidx.annotation.OptIn
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.compose.foundation.layout.Column
+import androidx.camera.view.PreviewView
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,50 +19,83 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.cynthia.bottle_collection_system_android_application.R
-import com.cynthia.bottle_collection_system_android_application.ui.theme.BottlecollectionsystemandroidapplicationTheme
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.common.InputImage
 
 
+@OptIn(ExperimentalGetImage::class)
 @Composable
-fun ScanComposable(navigateBack: () -> Unit, modifier: Modifier = Modifier) {
-    var code by remember {
-        mutableStateOf("")
-    }
+fun ScanComposable(navigateBack: () -> Unit) {
+
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val cameraProviderFuture = remember {
-        ProcessCameraProvider.getInstance(context)
-    }
-    var hasCamPermission by remember {
-        mutableStateOf(
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_GRANTED
+    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+    val barcodeScanner = BarcodeScanning.getClient()
+    Box(modifier = Modifier.fillMaxSize()) {
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = { viewContext ->
+                val previewView = PreviewView(viewContext).apply {
+                    val cameraProvider = cameraProviderFuture.get()
+                    val preview = Preview.Builder().build()
+                    val imageAnalysis = ImageAnalysis.Builder()
+                        .setTargetResolution(Size(640, 480))
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .build()
+
+                    imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(viewContext)) { imageProxy ->
+                        // Process image for QR code detection
+                        val mediaImage = imageProxy.image
+                        if (mediaImage != null) {
+                            val imageInfo = imageProxy.imageInfo
+                            val inputImage = InputImage.fromMediaImage(
+                                mediaImage,
+                                imageInfo.rotationDegrees
+                            )
+
+                            barcodeScanner.process(inputImage)
+                                .addOnSuccessListener { barcodes ->
+                                    // Handle detected QR codes
+                                    for (barcode in barcodes) {
+                                        // Update UI with detected code
+//                                    print(barcode)
+                                        Log.d("Scan Activity", "result: ${barcode.displayValue}")
+                                    }
+                                }
+                                .addOnFailureListener {
+                                    // Handle errors
+                                    Log.d("Scan Activity", "errror: ${it.message}")
+                                }
+                                .addOnCompleteListener {
+                                    imageProxy.close()
+                                }
+                        } else {
+                            imageProxy.close()
+                        }
+                    }
+
+                    cameraProvider.unbindAll()
+                    cameraProvider.bindToLifecycle(
+                        lifecycleOwner,
+                        CameraSelector.DEFAULT_BACK_CAMERA,
+                        preview,
+                        imageAnalysis
+                    )
+
+                    preview.setSurfaceProvider(this.surfaceProvider)
+                }
+                previewView
+            }
         )
-    }
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { granted ->
-            hasCamPermission = granted
-        }
-    )
-
-
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -67,24 +104,14 @@ fun ScanComposable(navigateBack: () -> Unit, modifier: Modifier = Modifier) {
             IconButton(
                 onClick = {
                     navigateBack()
-                },
-                modifier = Modifier.size(50.dp)
+                }, modifier = Modifier.size(50.dp)
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.arrow_back_24),
-                    contentDescription = "Back Arrow"
+                    contentDescription = "Back Arrow",
                 )
             }
         }
-
-
     }
-}
 
-@Preview(showBackground = true)
-@Composable
-fun ScanComposablePreview() {
-    BottlecollectionsystemandroidapplicationTheme {
-        ScanComposable(navigateBack = {})
-    }
 }
