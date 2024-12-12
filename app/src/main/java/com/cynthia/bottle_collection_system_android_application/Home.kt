@@ -42,17 +42,17 @@ fun HomeNavGraph(
             }
             composable("history") {
                 AccountComposable(
-                    navigateBack = { navController.popBackStack() },
+                    navigateBack = { navController.popBackStack("home", false) },
                 )
             }
 
             composable("scan") {
-                ScanComposable(navigateBack = { navController.popBackStack() })
+                ScanComposable(navigateBack = { navController.popBackStack("home", false) })
             }
 
             composable("account") {
                 AccountComposable(
-                    navigateBack = { navController.popBackStack() },
+                    navigateBack = { navController.popBackStack("home", false) },
                 )
             }
 
