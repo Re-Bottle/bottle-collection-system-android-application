@@ -27,8 +27,11 @@ import com.cynthia.bottle_collection_system_android_application.ui.theme.Bottlec
 fun WelcomeComposable(
     modifier: Modifier = Modifier,
     onNavigateToLogin: () -> Unit,
-    onNavigateToRegister: () -> Unit
+    onNavigateToRegister: () -> Unit,
 ) {
+
+
+
     Column(
         modifier = modifier
             .fillMaxSize()

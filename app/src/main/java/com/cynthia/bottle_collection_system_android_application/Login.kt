@@ -1,5 +1,6 @@
 package com.cynthia.bottle_collection_system_android_application
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -31,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,7 +45,10 @@ import com.cynthia.bottle_collection_system_android_application.ui.theme.Bottlec
 @Composable
 fun LoginComposable(
     modifier: Modifier = Modifier,
-    handleLogin: (email: String, password: String) -> Unit,
+    handleLogin: (
+        context: Context, email: String, password: String,
+        onError: (String) -> Unit
+    ) -> Unit,
     navigateBack: () -> Unit,
     navigateToRegister: () -> Unit
 ) {
@@ -52,13 +57,17 @@ fun LoginComposable(
     var password by remember { mutableStateOf("") }
     var isButtonEnabled by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     // move to ViewModel
     val handleLoginClick = {
         // Validate data
         isButtonEnabled = false
         try {
-            handleLogin(email, password)
+            handleLogin(context, email, password) {
+                errorMessage = it
+                openAlertDialog = true
+            }
         } catch (e: Exception) {
             errorMessage = e.message.toString()
             openAlertDialog = true
@@ -77,10 +86,12 @@ fun LoginComposable(
                 Text(errorMessage)
             }
             AlertDialog(
-                onDismissRequest = {openAlertDialog = false},
-                confirmButton = { Button(onClick = { openAlertDialog = false }) {
-                    Text("OK")
-                } },
+                onDismissRequest = { openAlertDialog = false },
+                confirmButton = {
+                    Button(onClick = { openAlertDialog = false }) {
+                        Text("OK")
+                    }
+                },
                 title = { Text("An error occurred") },
                 text = { Text(errorMessage) }
             )
@@ -211,8 +222,9 @@ fun LoginComposable(
 fun LoginComposablePreview() {
     BottlecollectionsystemandroidapplicationTheme {
         LoginComposable(
-            handleLogin = { _: String, _: String -> },
-            navigateBack = { },
-            navigateToRegister = { })
+            handleLogin = { _, _, _, _ -> },
+            navigateBack = {},
+            navigateToRegister = {}
+        )
     }
 }
