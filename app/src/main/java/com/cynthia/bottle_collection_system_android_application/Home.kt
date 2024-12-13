@@ -36,7 +36,8 @@ fun HomeNavGraph(
         ) {
             composable("home") {
                 HomeComposable(
-                    navigateBack = { navController.popBackStack() },
+                    navigateHelp = { navController.navigate("help") },
+                    navigateToRewards = {navController.navigate("rewards")},
                     points = 10,
                 )
             }
@@ -54,6 +55,16 @@ fun HomeNavGraph(
                 AccountComposable(
                     navigateBack = { navController.popBackStack() },
                 )
+            }
+
+            composable("help") {
+                HelpComposable(
+                    navigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable("rewards") {
+                //to rewards composable
             }
 
 

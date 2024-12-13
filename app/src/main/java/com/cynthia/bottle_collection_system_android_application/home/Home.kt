@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
@@ -29,10 +28,13 @@ import com.cynthia.bottle_collection_system_android_application.ui.theme.Bottlec
 
 
 @Composable
-fun HomeComposable(navigateBack: () -> Unit, points: Int = 0, modifier: Modifier = Modifier) {
-    val handleClaimClick = {
-        // Validate data
-    }
+fun HomeComposable(
+    navigateHelp: () -> Unit,
+    navigateToRewards: () -> Unit,
+    points: Int = 0,
+    modifier: Modifier = Modifier
+) {
+
 
     Column(
         modifier = modifier
@@ -42,6 +44,24 @@ fun HomeComposable(navigateBack: () -> Unit, points: Int = 0, modifier: Modifier
         verticalArrangement = Arrangement.Top
     ) {
 
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 25.dp),
+            horizontalArrangement = Arrangement.End
+        ) {
+            IconButton(
+                onClick = {
+                    navigateHelp()
+                }, modifier = Modifier.size(50.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.help),
+                    contentDescription = "Help"
+                )
+            }
+
+        }
 
         // Heading Text
         Text(
@@ -49,7 +69,6 @@ fun HomeComposable(navigateBack: () -> Unit, points: Int = 0, modifier: Modifier
             fontSize = 48.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.secondary,
-            modifier = Modifier.padding(0.dp,100.dp)
         )
 
         // Points Text
@@ -68,7 +87,9 @@ fun HomeComposable(navigateBack: () -> Unit, points: Int = 0, modifier: Modifier
             )
 
             Button(
-                onClick = handleClaimClick,
+                onClick = {
+                    navigateToRewards()
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.secondary,
                     contentColor = MaterialTheme.colorScheme.surface
@@ -91,6 +112,6 @@ fun HomeComposable(navigateBack: () -> Unit, points: Int = 0, modifier: Modifier
 @Composable
 fun CustomBottomNavigationPreview() {
     BottlecollectionsystemandroidapplicationTheme {
-        HomeComposable(navigateBack = {})
+        HomeComposable(navigateHelp = {}, navigateToRewards = {})
     }
 }

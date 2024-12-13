@@ -107,7 +107,7 @@ fun ScanComposable(navigateBack: () -> Unit) {
                 }, modifier = Modifier.size(50.dp)
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.arrow_back_24),
+                    painter = painterResource(id = R.drawable.back_arrow),
                     contentDescription = "Back Arrow",
                 )
             }
