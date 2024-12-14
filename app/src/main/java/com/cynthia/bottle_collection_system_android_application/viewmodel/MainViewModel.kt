@@ -22,8 +22,8 @@ class MainViewModel : ViewModel() {
     private val _isConnectedToServer = MutableLiveData<Boolean?>(null)
     val isConnectedToServer: LiveData<Boolean?> get() = _isConnectedToServer
 
-    private val _isLoggedIn = MutableLiveData(false)
-    val isLoggedIn: LiveData<Boolean> get() = _isLoggedIn
+    private val _isLoggedIn = MutableLiveData<Boolean?>(null)
+    val isLoggedIn: LiveData<Boolean?> get() = _isLoggedIn
 
     companion object {
         private const val PREFERENCES_NAME = "auth_preferences"
@@ -38,16 +38,18 @@ class MainViewModel : ViewModel() {
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
-        val sharedPreferences: SharedPreferences by lazy {
-            context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
-        }
+        val sharedPreferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val url = URL("$server/auth/login")
                 val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "POST"
-                connection.setRequestProperty("Content-Type", "application/json")
-                connection.doOutput = true
+                connection.apply {
+                    requestMethod = "POST"
+                    setRequestProperty("Content-Type", "application/json")
+                    doOutput = true
+                    connectTimeout = 5000 // Add timeout
+                    readTimeout = 5000
+                }
 
                 val jsonBody = JSONObject().apply {
                     put("email", email)
@@ -65,9 +67,7 @@ class MainViewModel : ViewModel() {
                         ?.substringAfter("auth_token=")
 
                     if (token != null) {
-                        // Save the token securely in SharedPreferences
                         sharedPreferences.edit().putString(TOKEN_KEY, token).apply()
-
                         this@MainViewModel.email = email
                         this@MainViewModel.password = password
 
@@ -89,81 +89,129 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    // Function to Ping Server
-    fun checkServerConnection(onSuccess: () -> Unit, onError: (String) -> Unit) {
+    fun register(
+        name: String,
+        email: String,
+        password: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
-            _isConnectedToServer.postValue(null)
             try {
-                val url =
-                    URL("$server/") // Replace with the specific endpoint for server health check (if exists)
+                val url = URL("$server/auth/signup")
                 val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod =
-                    "GET" // Or adjust based on your server health check endpoint
-                connection.connectTimeout = 5000 // Set a connection timeout in milliseconds
+                connection.requestMethod = "POST"
+                connection.setRequestProperty("Content-Type", "application/json")
+                connection.doOutput = true
+
+                val jsonBody = JSONObject().apply {
+                    put("name", name)
+                    put("email", email)
+                    put("password", password)
+                }
+
+                connection.outputStream.use { os ->
+                    val bytes = jsonBody.toString().toByteArray(Charsets.UTF_8)
+                    os.write(bytes)
+                    os.flush()
+                }
 
                 val responseCode = connection.responseCode
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    println("Connection: Success")
-                    onSuccess()
-                    _isConnectedToServer.postValue(true)
+                connection.disconnect()
+                if (responseCode == HttpURLConnection.HTTP_CREATED) {
+                    println("Registration Successful")
+                    withContext(Dispatchers.Main) {
+                        onSuccess()
+                    }
                 } else {
-                    val errorMessage = "Server connection failed with code: $responseCode"
-                    _isConnectedToServer.postValue(false)
-                    println("Connection: failed: $errorMessage")
+                    println("$responseCode")
+                    val errorMessage = connection.errorStream.bufferedReader().use { it.readText() }
+                    println("Registration failed: $errorMessage")
                     onError(errorMessage)
+                }
+
+            } catch (e: Exception) {
+                onError("Registration failed: ${e.message}")
+            }
+        }
+    }
+
+    // Function to check server connection
+    fun checkServerConnection(onSuccess: () -> Unit, onError: (String) -> Unit) {
+        _isConnectedToServer.value = null // Reset connection status
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val url = URL("$server/")
+                val connection = url.openConnection() as HttpURLConnection
+                connection.apply {
+                    requestMethod = "GET"
+                    connectTimeout = 5000
+                    readTimeout = 5000
+                }
+
+                val responseCode = connection.responseCode
+                withContext(Dispatchers.Main) {
+                    if (responseCode == HttpURLConnection.HTTP_OK) {
+                        _isConnectedToServer.postValue(true)
+                        onSuccess()
+                    } else {
+                        val errorMessage = "Server connection failed with code: $responseCode"
+                        _isConnectedToServer.postValue(false)
+                        onError(errorMessage)
+                    }
                 }
                 connection.disconnect()
             } catch (e: Exception) {
                 _isConnectedToServer.postValue(false)
-                println("Connection: error")
                 onError("Error checking server connection: ${e.message}")
             }
         }
     }
 
+    // Function to update login status
     fun updateLoginStatus(context: Context) {
-        val sharedPreferences: SharedPreferences by lazy {
-            context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+        val sharedPreferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+        val token = sharedPreferences.getString(TOKEN_KEY, null)
+
+        if (token == null) {
+            _isLoggedIn.postValue(false)
+        } else {
+            validateJWTToken(context, token)
         }
-        _isLoggedIn.postValue(sharedPreferences.getString(TOKEN_KEY, null) != null)
     }
 
-    // Function to fetch reward points from the server
-    fun getRewardPointsFromServer(
-        context: Context,
-        onSuccess: (Int) -> Unit,
-        onError: (String) -> Unit
-    ) {
-        val sharedPreferences: SharedPreferences by lazy {
-            context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
-        }
+    // Function to validate JWT token
+    private fun validateJWTToken(context: Context, token: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val url = URL("$server/reward_points")
+                val url = URL("$server/authenticateJWT")
                 val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "GET"
-
-                // Add the JWT token to the request header
-                val token = sharedPreferences.getString(TOKEN_KEY, null)
-                if (token != null) {
-                    connection.setRequestProperty("Authorization", "Bearer $token")
-                }
+                connection.requestMethod = "POST"
+                connection.setRequestProperty("Cookie", "auth_token=$token")
 
                 val responseCode = connection.responseCode
                 if (responseCode == HttpURLConnection.HTTP_OK) {
-                    val response = connection.inputStream.bufferedReader().use { it.readText() }
-                    val jsonResponse = JSONObject(response)
-                    val rewardPoints = jsonResponse.getInt("reward_points")
-                    onSuccess(rewardPoints)
+                    _isLoggedIn.postValue(true)
                 } else {
-                    val errorMessage = connection.errorStream.bufferedReader().use { it.readText() }
-                    onError("Failed to fetch reward points: $errorMessage")
+                    // Handle invalid token, clear token from shared preferences
+                    _isLoggedIn.postValue(false)
+                    val sharedPreferences =
+                        context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+                    sharedPreferences.edit().remove(TOKEN_KEY).apply() // Clear invalid token
                 }
-
                 connection.disconnect()
             } catch (e: Exception) {
-                onError("Failed to fetch reward points: ${e.message}")
+                _isLoggedIn.postValue(false)
             }
+        }
+    }
+
+    fun logout(context: Context) {
+        viewModelScope.launch {
+            val sharedPreferences =
+                context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+            sharedPreferences.edit().remove(TOKEN_KEY).apply()
+            _isLoggedIn.value = false
         }
     }
 }

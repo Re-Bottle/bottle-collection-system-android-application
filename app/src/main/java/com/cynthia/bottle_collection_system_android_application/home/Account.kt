@@ -37,6 +37,7 @@ import com.cynthia.bottle_collection_system_android_application.ui.theme.Bottlec
 fun AccountComposable(
     modifier: Modifier = Modifier,
     navigateBack: () -> Unit,
+    handleLogout: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
@@ -51,8 +52,7 @@ fun AccountComposable(
         isButtonEnabled = false
         isButtonEnabled = true // Re-enable the button after the task completes
     }
-
-
+    
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -180,7 +180,7 @@ fun AccountComposable(
                 Text("Change Password")
             }
             Button(
-                onClick = handleChangeUpiIdClick,
+                onClick = handleLogout,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.DarkGray,
                     contentColor = MaterialTheme.colorScheme.surface
@@ -203,6 +203,7 @@ fun AccountComposablePreview() {
     BottlecollectionsystemandroidapplicationTheme {
         AccountComposable(
             navigateBack = { },
+            handleLogout = {}
         )
     }
 }

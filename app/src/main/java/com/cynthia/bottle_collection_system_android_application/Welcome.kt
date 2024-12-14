@@ -29,9 +29,6 @@ fun WelcomeComposable(
     onNavigateToLogin: () -> Unit,
     onNavigateToRegister: () -> Unit,
 ) {
-
-
-
     Column(
         modifier = modifier
             .fillMaxSize()

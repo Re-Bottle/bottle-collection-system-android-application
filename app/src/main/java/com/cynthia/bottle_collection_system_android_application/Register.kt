@@ -1,5 +1,6 @@
 package com.cynthia.bottle_collection_system_android_application
 
+import android.content.Context
 import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
@@ -42,25 +43,25 @@ import com.cynthia.bottle_collection_system_android_application.ui.theme.Bottlec
 @Composable
 fun RegisterComposable(
     modifier: Modifier = Modifier,
-    handleRegister: (String, String, String, String) -> Unit,
+    handleRegister: (String, String, String, (String) -> Unit) -> Unit,
     navigateBack: () -> Unit,
     navigateToLogin: () -> Unit
 ) {
-    val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var isButtonEnabled by remember { mutableStateOf(true) }
 
-    // move to ViewModel
     val handleRegisterClick = {
         // Validate data
         isButtonEnabled = false
-        handleRegister(name, email, password, confirmPassword)
-        isButtonEnabled = true // Re-enable the button after the task completes
+        handleRegister(name, email, password, {
+//            Show Error Dialog
+            println(it)
+            isButtonEnabled = true
+        })
     }
-
 
     Column(
         modifier = modifier
@@ -106,8 +107,7 @@ fun RegisterComposable(
                 .padding(16.dp) // Optional padding inside the Box
         ) {
             Column(
-                verticalArrangement = Arrangement.SpaceAround,
-                modifier = Modifier.fillMaxSize()
+                verticalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxSize()
             ) {
                 TextField(
                     value = name,
@@ -184,17 +184,14 @@ fun RegisterComposable(
                 Button(
                     onClick = {
                         if (password == confirmPassword) {
-                            print("pass")
-//                            Go to home page
+                            handleRegisterClick()
                         } else {
 //                            have to clear the text field a message should pop
                         }
-                    },
-                    colors = ButtonDefaults.buttonColors(
+                    }, colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.secondary,
                         contentColor = MaterialTheme.colorScheme.surface
-                    ),
-                    modifier = Modifier
+                    ), modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
                 ) {
@@ -226,9 +223,8 @@ fun RegisterComposable(
 fun RegisterComposablePreview() {
     BottlecollectionsystemandroidapplicationTheme {
         RegisterComposable(
-            handleRegister = { _: String, _: String, _: String, _: String -> },
+            handleRegister = { _, _, _, _ -> },
             navigateBack = { },
-            navigateToLogin = { },
-        )
+            navigateToLogin = { })
     }
 }

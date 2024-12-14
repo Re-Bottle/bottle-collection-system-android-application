@@ -25,7 +25,7 @@ import com.cynthia.bottle_collection_system_android_application.ui.theme.Bottlec
 
 @Composable
 fun HomeNavGraph(
-    onNavigateToLogin: () -> Unit
+    logout: () -> Unit
 ) {
     val navController: NavHostController = rememberNavController()
     Column(modifier = Modifier.fillMaxSize()) {
@@ -37,13 +37,16 @@ fun HomeNavGraph(
             composable("home") {
                 HomeComposable(
                     navigateHelp = { navController.navigate("help") },
-                    navigateToRewards = {navController.navigate("rewards")},
+                    navigateToRewards = { navController.navigate("rewards") },
                     points = 10,
                 )
             }
             composable("history") {
                 AccountComposable(
                     navigateBack = { navController.popBackStack("home", false) },
+                    handleLogout = {
+
+                    }
                 )
             }
 
@@ -54,6 +57,7 @@ fun HomeNavGraph(
             composable("account") {
                 AccountComposable(
                     navigateBack = { navController.popBackStack("home", false) },
+                    handleLogout = logout
                 )
             }
 

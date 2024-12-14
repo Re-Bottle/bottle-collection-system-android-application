@@ -18,6 +18,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavHostController
@@ -54,30 +55,7 @@ fun AppNavGraph(mainViewModel: MainViewModel) {
     val navController: NavHostController = rememberNavController()
     val isConnected = mainViewModel.isConnectedToServer.observeAsState()
     val isLoggedIn = mainViewModel.isLoggedIn.observeAsState()
-
-    when (isConnected.value) {
-        null -> {
-            // Show splash screen, loading, or wait state
-        }
-
-        false -> {
-            // Show dialog or alert that connection failed
-            AlertDialog(
-                onDismissRequest = { mainViewModel.checkServerConnection({}, {}) },
-                confirmButton = {
-                    Button(onClick = { mainViewModel.checkServerConnection({}, {}) }) {
-                        Text("Retry")
-                    }
-                },
-                title = { Text("Unable to connect to server") },
-                text = { Text("Please check your internet connection and try again") }
-            )
-        }
-
-        true -> {
-            // Proceed to navigate to home or other screens
-        }
-    }
+    val context = LocalContext.current
 
     Box(modifier = Modifier.fillMaxSize()) {
         NavHost(
@@ -109,8 +87,17 @@ fun AppNavGraph(mainViewModel: MainViewModel) {
 
             composable("register") {
                 RegisterComposable(
-                    handleRegister = { name, email, password, confirmPass ->
+                    handleRegister = { name, email, password, error ->
                         // Perform login logic, such as authentication
+                        mainViewModel.register(
+                            name,
+                            email,
+                            password,
+                            {
+                                navController.navigate("login")
+                            },
+                            error
+                        )
                     },
                     navigateBack = { navController.popBackStack() }, // Add this
                     navigateToLogin = { navController.navigate("login") }
@@ -119,7 +106,13 @@ fun AppNavGraph(mainViewModel: MainViewModel) {
 
             composable("home") {
                 HomeNavGraph(
-                    onNavigateToLogin = { navController.navigate("login") }
+                    logout = {
+                        mainViewModel.logout(context)
+                        navController.navigate("login") {
+                            popUpTo("home") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
         }
@@ -132,6 +125,17 @@ fun AppNavGraph(mainViewModel: MainViewModel) {
             ) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
+        } else if (isConnected.value == false) {
+            AlertDialog(
+                onDismissRequest = { mainViewModel.checkServerConnection({}, {}) },
+                confirmButton = {
+                    Button(onClick = { mainViewModel.checkServerConnection({}, {}) }) {
+                        Text("Retry")
+                    }
+                },
+                title = { Text("Unable to connect to server") },
+                text = { Text("Please check your internet connection and try again") }
+            )
         }
     }
 
