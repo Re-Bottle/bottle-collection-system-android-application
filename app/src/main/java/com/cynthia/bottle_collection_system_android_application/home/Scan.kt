@@ -1,8 +1,8 @@
 package com.cynthia.bottle_collection_system_android_application.home
 
-
 import android.util.Log
 import android.util.Size
+import android.view.Surface
 import androidx.annotation.OptIn
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
@@ -48,6 +48,7 @@ fun ScanComposable(navigateBack: () -> Unit) {
                     val cameraProvider = cameraProviderFuture.get()
                     val preview = Preview.Builder().build()
                     val imageAnalysis = ImageAnalysis.Builder()
+                        .setTargetRotation(Surface.ROTATION_0)
                         .setTargetResolution(Size(640, 480))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build()
@@ -73,7 +74,7 @@ fun ScanComposable(navigateBack: () -> Unit) {
                                 }
                                 .addOnFailureListener {
                                     // Handle errors
-                                    Log.d("Scan Activity", "errror: ${it.message}")
+                                    Log.d("Scan Activity", "error: ${it.message}")
                                 }
                                 .addOnCompleteListener {
                                     imageProxy.close()
@@ -91,7 +92,7 @@ fun ScanComposable(navigateBack: () -> Unit) {
                         imageAnalysis
                     )
 
-                    preview.setSurfaceProvider(this.surfaceProvider)
+                    preview.surfaceProvider = this.surfaceProvider
                 }
                 previewView
             }
@@ -114,4 +115,10 @@ fun ScanComposable(navigateBack: () -> Unit) {
         }
     }
 
+}
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun ScanPreview() {
+    ScanComposable { }
 }

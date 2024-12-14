@@ -67,6 +67,7 @@ fun AppNavGraph(mainViewModel: MainViewModel) {
                 WelcomeComposable(
                     onNavigateToLogin = { navController.navigate("login") },
                     onNavigateToRegister = { navController.navigate("register") },
+                    connectedState = isConnected
                 )
             }
 
@@ -112,7 +113,8 @@ fun AppNavGraph(mainViewModel: MainViewModel) {
                             popUpTo("home") { inclusive = true }
                             launchSingleTop = true
                         }
-                    }
+                    },
+                    viewModel = mainViewModel
                 )
             }
         }

@@ -37,14 +37,14 @@ import com.cynthia.bottle_collection_system_android_application.ui.theme.Bottlec
 fun AccountComposable(
     modifier: Modifier = Modifier,
     navigateBack: () -> Unit,
-    handleLogout: () -> Unit
+    handleLogout: () -> Unit,
+    email: String,
+    name: String
 ) {
-    var email by remember { mutableStateOf("") }
-    var name by remember { mutableStateOf("") }
-    var bottleScannedNumber by remember { mutableIntStateOf(0) }
-    var pointsEarned by remember { mutableIntStateOf(0) }
-    var bottlesRecycledCount by remember { mutableIntStateOf(0) }
+    val bottleScannedNumber by remember { mutableIntStateOf(0) }
+    val pointsEarned by remember { mutableIntStateOf(0) }
     var isButtonEnabled by remember { mutableStateOf(true) }
+    val upiID: String = "abcd@bank"
 
     // move to ViewModel
     val handleChangeUpiIdClick = {
@@ -52,7 +52,7 @@ fun AccountComposable(
         isButtonEnabled = false
         isButtonEnabled = true // Re-enable the button after the task completes
     }
-    
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -96,7 +96,7 @@ fun AccountComposable(
 
         ) {
             Text(
-                text = name,
+                text = email,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,
@@ -146,9 +146,9 @@ fun AccountComposable(
                     alignment = Alignment.CenterHorizontally
                 )
             )
-            //                graph
+            // Show Monthly wise graph
             Text(
-                text = email,
+                text = upiID,
                 fontSize = 20.sp,
                 color = Color.Gray,
                 modifier = Modifier.align(
@@ -203,7 +203,9 @@ fun AccountComposablePreview() {
     BottlecollectionsystemandroidapplicationTheme {
         AccountComposable(
             navigateBack = { },
-            handleLogout = {}
+            handleLogout = {},
+            email = "",
+            name = ""
         )
     }
 }

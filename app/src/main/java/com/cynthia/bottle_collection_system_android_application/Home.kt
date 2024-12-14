@@ -21,11 +21,13 @@ import com.cynthia.bottle_collection_system_android_application.home.AccountComp
 import com.cynthia.bottle_collection_system_android_application.home.HomeComposable
 import com.cynthia.bottle_collection_system_android_application.home.ScanComposable
 import com.cynthia.bottle_collection_system_android_application.ui.theme.BottlecollectionsystemandroidapplicationTheme
+import com.cynthia.bottle_collection_system_android_application.viewmodel.MainViewModel
 
 
 @Composable
 fun HomeNavGraph(
-    logout: () -> Unit
+    logout: () -> Unit,
+    viewModel: MainViewModel
 ) {
     val navController: NavHostController = rememberNavController()
     Column(modifier = Modifier.fillMaxSize()) {
@@ -38,7 +40,8 @@ fun HomeNavGraph(
                 HomeComposable(
                     navigateHelp = { navController.navigate("help") },
                     navigateToRewards = { navController.navigate("rewards") },
-                    points = 10,
+                    points = viewModel.points,
+                    name = viewModel.name
                 )
             }
             composable("history") {
@@ -46,7 +49,8 @@ fun HomeNavGraph(
                     navigateBack = { navController.popBackStack("home", false) },
                     handleLogout = {
 
-                    }
+                    }, email = "",
+                    name = ""
                 )
             }
 
@@ -57,7 +61,9 @@ fun HomeNavGraph(
             composable("account") {
                 AccountComposable(
                     navigateBack = { navController.popBackStack("home", false) },
-                    handleLogout = logout
+                    handleLogout = logout,
+                    email = viewModel.email,
+                    name = viewModel.name
                 )
             }
 
@@ -127,7 +133,10 @@ fun HomeNavGraph(
 @Composable
 fun HomeComposablePreview() {
     BottlecollectionsystemandroidapplicationTheme {
-        HomeNavGraph { }
+        HomeNavGraph(
+            {},
+            MainViewModel()
+        )
     }
 
 }

@@ -1,7 +1,6 @@
 package com.cynthia.bottle_collection_system_android_application.viewmodel
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -10,13 +9,15 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONException
+import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
-import org.json.JSONObject
 
 class MainViewModel : ViewModel() {
-    private var email: String = ""
-    private var password: String = ""
+    val points: Int = 0
+    var email: String = ""
+    var name: String = ""
     private val server: String = "http://10.0.2.2:3000" // for emulator to connect to localhost
 
     private val _isConnectedToServer = MutableLiveData<Boolean?>(null)
@@ -28,6 +29,9 @@ class MainViewModel : ViewModel() {
     companion object {
         private const val PREFERENCES_NAME = "auth_preferences"
         private const val TOKEN_KEY = "jwt_token"
+        private const val EMAIL_KEY = "user_email"
+        private const val NAME_KEY = "user_name"
+
     }
 
     // Function to handle user login
@@ -47,7 +51,7 @@ class MainViewModel : ViewModel() {
                     requestMethod = "POST"
                     setRequestProperty("Content-Type", "application/json")
                     doOutput = true
-                    connectTimeout = 5000 // Add timeout
+                    connectTimeout = 5000
                     readTimeout = 5000
                 }
 
@@ -67,9 +71,29 @@ class MainViewModel : ViewModel() {
                         ?.substringAfter("auth_token=")
 
                     if (token != null) {
-                        sharedPreferences.edit().putString(TOKEN_KEY, token).apply()
                         this@MainViewModel.email = email
-                        this@MainViewModel.password = password
+                        sharedPreferences.edit().putString(TOKEN_KEY, token)
+                            .putString(EMAIL_KEY, email).apply()
+
+                        val response = connection.inputStream.bufferedReader().use { it.readText() }
+                        try {
+                            val jsonResponse = JSONObject(response)
+                            val name =
+                                jsonResponse.optString("name")
+                            if (name.isNotEmpty()) {
+                                println("Got email $email")
+                                this@MainViewModel.name = name
+                                sharedPreferences.edit().putString(NAME_KEY, name).apply()
+                            } else {
+                                onError("Login failed: 'name' not found in response")
+                            }
+
+                            withContext(Dispatchers.Main) {
+                                onSuccess()
+                            }
+                        } catch (e: JSONException) {
+                            onError("Login failed: Failed to parse response JSON")
+                        }
 
                         withContext(Dispatchers.Main) {
                             onSuccess()
@@ -182,6 +206,37 @@ class MainViewModel : ViewModel() {
 
     // Function to validate JWT token
     private fun validateJWTToken(context: Context, token: String) {
+        val sharedPreferences =
+            context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val url = URL("$server/authenticateJWT")
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "POST"
+                connection.setRequestProperty("Cookie", "auth_token=$token")
+
+                val responseCode = connection.responseCode
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    _isLoggedIn.postValue(true)
+                    this@MainViewModel.email = sharedPreferences.getString(EMAIL_KEY, "").toString()
+                    this@MainViewModel.name = sharedPreferences.getString(NAME_KEY, "").toString()
+                } else {
+                    // Handle invalid token, clear token from shared preferences
+                    _isLoggedIn.postValue(false)
+
+                    sharedPreferences.edit().remove(TOKEN_KEY).apply() // Clear invalid token
+                }
+                connection.disconnect()
+            } catch (e: Exception) {
+                _isLoggedIn.postValue(false)
+            }
+        }
+    }
+
+    fun getUserPoints(context: Context) {
+        val sharedPreferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+        val token = sharedPreferences.getString(TOKEN_KEY, null)
+
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val url = URL("$server/authenticateJWT")
@@ -195,8 +250,6 @@ class MainViewModel : ViewModel() {
                 } else {
                     // Handle invalid token, clear token from shared preferences
                     _isLoggedIn.postValue(false)
-                    val sharedPreferences =
-                        context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
                     sharedPreferences.edit().remove(TOKEN_KEY).apply() // Clear invalid token
                 }
                 connection.disconnect()

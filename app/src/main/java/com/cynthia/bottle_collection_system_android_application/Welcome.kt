@@ -12,6 +12,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,6 +31,7 @@ fun WelcomeComposable(
     modifier: Modifier = Modifier,
     onNavigateToLogin: () -> Unit,
     onNavigateToRegister: () -> Unit,
+    connectedState: State<Boolean?>,
 ) {
     Column(
         modifier = modifier
@@ -63,7 +67,10 @@ fun WelcomeComposable(
 
         // Login Button
         Button(
-            onClick = onNavigateToLogin,
+            onClick = {
+                if (connectedState.value == true)
+                    onNavigateToLogin()
+            },
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = MaterialTheme.colorScheme.surface
@@ -77,7 +84,9 @@ fun WelcomeComposable(
 
         // Register Button
         Button(
-            onClick = onNavigateToRegister, // Navigate using Jetpack Navigation
+            onClick = {
+                if (connectedState.value == true) onNavigateToRegister()
+            }, // Navigate using Jetpack Navigation
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = MaterialTheme.colorScheme.secondary
@@ -95,6 +104,8 @@ fun WelcomeComposable(
 @Composable
 fun WelcomeComposablePreview() {
     BottlecollectionsystemandroidapplicationTheme {
-        WelcomeComposable(onNavigateToLogin = {}, onNavigateToRegister = {})
+        WelcomeComposable(onNavigateToLogin = {}, onNavigateToRegister = {},
+            connectedState = remember { mutableStateOf(true) }
+        )
     }
 }
