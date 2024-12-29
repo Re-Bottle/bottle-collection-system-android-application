@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">bottle-collection-system-android-application</string>
+    <string name="app_name">Re-Bottle</string>
     <string name="title_activity_welcome">Welcome</string>
     <string name="title_activity_login">LoginActivity</string>
     <string name="title_activity_signup">SignupActivity</string>

@@ -1,12 +1,13 @@
 package com.cynthia.bottle_collection_system_android_application.viewmodel
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONException
@@ -26,12 +27,42 @@ class MainViewModel : ViewModel() {
     private val _isLoggedIn = MutableLiveData<Boolean?>(null)
     val isLoggedIn: LiveData<Boolean?> get() = _isLoggedIn
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> get() = _isLoading
+
     companion object {
         private const val PREFERENCES_NAME = "auth_preferences"
         private const val TOKEN_KEY = "jwt_token"
         private const val EMAIL_KEY = "user_email"
         private const val NAME_KEY = "user_name"
 
+    }
+
+    // Function to handle the loading indicators
+    private fun startLoading() {
+        _isLoading.value = true
+    }
+
+    private fun stopLoading() {
+        _isLoading.value = false
+    }
+
+    private fun checkValidation(
+        email: String,
+        password: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            if (email.isNotEmpty() && password.isNotEmpty()) {
+                _isLoading.value = false
+                onSuccess()
+            } else {
+                _isLoading.value = false
+                onError("Invalid input.")
+            }
+        }
     }
 
     // Function to handle user login
@@ -45,6 +76,7 @@ class MainViewModel : ViewModel() {
         val sharedPreferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                startLoading()
                 val url = URL("$server/auth/login")
                 val connection = url.openConnection() as HttpURLConnection
                 connection.apply {
@@ -105,7 +137,7 @@ class MainViewModel : ViewModel() {
                     val errorMessage = connection.errorStream.bufferedReader().use { it.readText() }
                     onError("Login failed: $errorMessage")
                 }
-
+                stopLoading()
                 connection.disconnect()
             } catch (e: Exception) {
                 onError("Login failed: ${e.message}")
@@ -122,6 +154,7 @@ class MainViewModel : ViewModel() {
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                startLoading()
                 val url = URL("$server/auth/signup")
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "POST"
@@ -153,7 +186,7 @@ class MainViewModel : ViewModel() {
                     println("Registration failed: $errorMessage")
                     onError(errorMessage)
                 }
-
+                stopLoading()
             } catch (e: Exception) {
                 onError("Registration failed: ${e.message}")
             }

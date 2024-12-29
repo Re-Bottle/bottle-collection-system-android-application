@@ -153,8 +153,8 @@ fun LoginComposable(
                     label = { Text("Email") },
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Green,
-                        focusedLabelColor = Color.Green,
+                        focusedIndicatorColor = MaterialTheme.colorScheme.tertiary,
+                        focusedLabelColor = MaterialTheme.colorScheme.tertiary,
                         unfocusedIndicatorColor = Color.Gray,
                         unfocusedLabelColor = Color.Gray,
                         unfocusedContainerColor = Color.Transparent
@@ -170,8 +170,8 @@ fun LoginComposable(
                         .padding(bottom = 8.dp),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Green,
-                        focusedLabelColor = Color.Green,
+                        focusedIndicatorColor = MaterialTheme.colorScheme.tertiary,
+                        focusedLabelColor = MaterialTheme.colorScheme.tertiary,
                         unfocusedIndicatorColor = Color.Gray,
                         unfocusedLabelColor = Color.Gray,
                         unfocusedContainerColor = Color.Transparent

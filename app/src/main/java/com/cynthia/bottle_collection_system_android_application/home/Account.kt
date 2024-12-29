@@ -9,12 +9,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -44,13 +47,109 @@ fun AccountComposable(
     val bottleScannedNumber by remember { mutableIntStateOf(0) }
     val pointsEarned by remember { mutableIntStateOf(0) }
     var isButtonEnabled by remember { mutableStateOf(true) }
-    val upiID: String = "abcd@bank"
+    var upiID by remember { mutableStateOf("Not Set") }
+    var openAlertDialog by remember { mutableStateOf(false) }
+    var messageContent by remember { mutableStateOf("") }
+    var messageTitle by remember { mutableStateOf("") }
+    var buttonText by remember { mutableStateOf("") }
+    var upiInput by remember { mutableStateOf("") }
+    var passwordInput by remember { mutableStateOf("") }
 
     // move to ViewModel
     val handleChangeUpiIdClick = {
         // Validate data
         isButtonEnabled = false
+        openAlertDialog = true
+        messageTitle = "Update UPI Details"
+        messageContent = "Enter new UPI ID"
+        buttonText = "Update"
+        upiInput = ""
         isButtonEnabled = true // Re-enable the button after the task completes
+    }
+
+    val handleChangePasswordClick={
+        openAlertDialog = true
+        messageTitle = "Change Password"
+        messageContent = "Enter new password"
+        buttonText = "Update"
+        passwordInput = ""
+    }
+
+    // Show dialog
+    if (openAlertDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                openAlertDialog = false
+            },
+            title = { Text(messageTitle) },
+            text = {
+                Column {
+                    // Input Field for UPI ID or Password
+                    if (messageTitle == "Update UPI Details") {
+                        TextField(
+                            value = upiInput,
+                            onValueChange = { upiInput = it },
+                            label = { Text("UPI ID") },
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = MaterialTheme.colorScheme.tertiary,
+                                focusedLabelColor = MaterialTheme.colorScheme.tertiary,
+                                unfocusedIndicatorColor = Color.Gray,
+                                unfocusedLabelColor = Color.Gray,
+                                unfocusedContainerColor = Color.Transparent
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    } else if (messageTitle == "Change Password") {
+                        TextField(
+                            value = passwordInput,
+                            onValueChange = { passwordInput = it },
+                            label = { Text("Password") },
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = MaterialTheme.colorScheme.tertiary,
+                                focusedLabelColor = MaterialTheme.colorScheme.tertiary,
+                                unfocusedIndicatorColor = Color.Gray,
+                                unfocusedLabelColor = Color.Gray,
+                                unfocusedContainerColor = Color.Transparent
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary,
+                        contentColor = MaterialTheme.colorScheme.surface
+                    ),
+                    onClick = {
+                        openAlertDialog = false
+                        // Handle the update action based on the title
+                        if (messageTitle == "Update UPI Details") {
+                            upiID = upiInput
+
+                        } else if (messageTitle == "Change Password") {
+                            // TODO:Change password with the value of passwordInput
+                        }
+                    }
+                ) {
+                    Text(buttonText)
+                }
+            },
+            dismissButton = {
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.DarkGray,
+                        contentColor = MaterialTheme.colorScheme.surface
+                    ),
+                    onClick = { openAlertDialog = false }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     Column(
@@ -96,7 +195,7 @@ fun AccountComposable(
 
         ) {
             Text(
-                text = email,
+                text = name.take(20),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,
@@ -169,7 +268,7 @@ fun AccountComposable(
                 Text("Change UPI ID")
             }
             Button(
-                onClick = handleChangeUpiIdClick,
+                onClick = handleChangePasswordClick,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Gray,
                     contentColor = Color.LightGray

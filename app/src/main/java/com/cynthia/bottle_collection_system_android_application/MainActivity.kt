@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +15,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,6 +58,7 @@ fun AppNavGraph(mainViewModel: MainViewModel) {
     val isConnected = mainViewModel.isConnectedToServer.observeAsState()
     val isLoggedIn = mainViewModel.isLoggedIn.observeAsState()
     val context = LocalContext.current
+    val isLoading = mainViewModel.isLoading.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
         NavHost(
@@ -118,12 +121,13 @@ fun AppNavGraph(mainViewModel: MainViewModel) {
                 )
             }
         }
-        if (isConnected.value == null) {
+        if (isConnected.value == null || isLoading.value) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.5f), shape = RoundedCornerShape(16.dp))
                     .align(Alignment.Center)
+                    .clickable(enabled = false) {}
             ) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
