@@ -1,6 +1,7 @@
 package com.cynthia.bottle_collection_system_android_application
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.cynthia.bottle_collection_system_android_application.ui.theme.BottlecollectionsystemandroidapplicationTheme
+import org.json.JSONObject
 
 
 @Composable
@@ -65,7 +67,10 @@ fun LoginComposable(
         isButtonEnabled = false
         try {
             handleLogin(context, email, password) {
-                errorMessage = it
+                val jsonString = it.substringAfter(":").trim()
+                val obj = JSONObject(jsonString)
+                errorMessage = obj.getString("message")
+//                errorMessage = it
                 openAlertDialog = true
             }
         } catch (e: Exception) {

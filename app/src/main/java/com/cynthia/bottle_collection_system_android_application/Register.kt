@@ -39,6 +39,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.cynthia.bottle_collection_system_android_application.ui.theme.BottlecollectionsystemandroidapplicationTheme
+import org.json.JSONException
+import org.json.JSONObject
+
+
 
 
 @Composable
@@ -59,6 +63,8 @@ fun RegisterComposable(
     var messageTitle by remember { mutableStateOf("") }
     var buttonText by remember { mutableStateOf("") }
 
+
+
     // move to ViewModel
     val handleRegisterClick = {
         // Validate data
@@ -67,7 +73,9 @@ fun RegisterComposable(
             // Show Error Dialog
             openAlertDialog = true
             messageTitle = "Could not register"
-            messageContent = it.trim (':')
+            val jsonString = it.substringAfter(":").trim()
+            val obj = JSONObject(jsonString)
+            messageContent = obj.getString("message")
             buttonText = "Retry"
             println(it)
             isButtonEnabled = true
@@ -219,7 +227,7 @@ fun RegisterComposable(
                         } else {
                             openAlertDialog = true
                             messageTitle = "Error While Registering"
-                            messageContent = "Check your password"
+                            messageContent = "Passwords do not match"
                             buttonText = "Retry"
                         }
                     }, colors = ButtonDefaults.buttonColors(
