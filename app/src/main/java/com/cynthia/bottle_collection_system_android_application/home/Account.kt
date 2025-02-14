@@ -41,7 +41,6 @@ fun AccountComposable(
     modifier: Modifier = Modifier,
     navigateBack: () -> Unit,
     handleLogout: () -> Unit,
-    email: String,
     name: String
 ) {
     val bottleScannedNumber by remember { mutableIntStateOf(0) }
@@ -67,7 +66,7 @@ fun AccountComposable(
         isButtonEnabled = true // Re-enable the button after the task completes
     }
 
-    val handleChangePasswordClick={
+    val handleChangePasswordClick = {
         openAlertDialog = true
         messageTitle = "Change Password"
         messageContent = "Enter new password"
@@ -132,6 +131,7 @@ fun AccountComposable(
 
                         } else if (messageTitle == "Change Password") {
                             // TODO:Change password with the value of passwordInput
+                            println("Change password clicked. (Not implemented)")
                         }
                     }
                 ) {
@@ -303,7 +303,6 @@ fun AccountComposablePreview() {
         AccountComposable(
             navigateBack = { },
             handleLogout = {},
-            email = "",
             name = ""
         )
     }

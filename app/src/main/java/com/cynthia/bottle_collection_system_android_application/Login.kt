@@ -1,7 +1,6 @@
 package com.cynthia.bottle_collection_system_android_application
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -77,7 +76,7 @@ fun LoginComposable(
             errorMessage = e.message.toString()
             openAlertDialog = true
         }
-        isButtonEnabled = true // Re-enable the button after the task completes
+        isButtonEnabled = true
     }
 
 
@@ -143,8 +142,8 @@ fun LoginComposable(
                 .padding(16.dp)
                 .border(
                     2.dp, Color.Gray, shape = RoundedCornerShape(8.dp)
-                ) // Border with color, width, and rounded corners
-                .padding(16.dp) // Optional padding inside the Box
+                )
+                .padding(16.dp)
         ) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp)

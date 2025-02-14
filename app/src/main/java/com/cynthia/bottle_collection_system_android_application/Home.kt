@@ -49,8 +49,7 @@ fun HomeNavGraph(
                     navigateBack = { navController.popBackStack("home", false) },
                     handleLogout = {
 
-                    }, email = "",
-                    name = ""
+                    }, name = ""
                 )
             }
 
@@ -62,7 +61,6 @@ fun HomeNavGraph(
                 AccountComposable(
                     navigateBack = { navController.popBackStack("home", false) },
                     handleLogout = logout,
-                    email = viewModel.email,
                     name = viewModel.name
                 )
             }
@@ -75,6 +73,10 @@ fun HomeNavGraph(
 
             composable("rewards") {
                 //to rewards composable
+                RewardComposable(
+                    viewModel,
+                    navigateBack = { navController.popBackStack("home", false) }
+                )
             }
 
 

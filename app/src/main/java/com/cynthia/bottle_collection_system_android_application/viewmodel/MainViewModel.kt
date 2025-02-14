@@ -18,10 +18,10 @@ import java.net.URL
 
 class MainViewModel : ViewModel() {
     val points: Int = 0
-    var email: String = ""
+    private var email: String = ""
     var name: String = ""
-    private val server: String = "http://10.0.2.2:3000" // for emulator to connect to localhost
 
+    private val server: String = "http://10.0.2.2:3000" // for emulator to connect to localhost
     private val _isConnectedToServer = MutableLiveData<Boolean?>(null)
     val isConnectedToServer: LiveData<Boolean?> get() = _isConnectedToServer
 
@@ -30,6 +30,16 @@ class MainViewModel : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> get() = _isLoading
+
+    data class RewardResponse(
+        val title: String,
+        val description: String,
+        val isClaimed: Boolean,
+        val name: String
+    )
+
+    private val _rewards = MutableLiveData<List<RewardResponse>>()
+    val rewards: LiveData<List<RewardResponse>> get() = _rewards
 
     companion object {
         private const val PREFERENCES_NAME = "auth_preferences"
@@ -55,7 +65,7 @@ class MainViewModel : ViewModel() {
 
     // Function to check password validation
     private fun isValidPassword(password: String): Boolean {
-        return password.length in 6..20 &&
+        return (password.length in (6..20)) &&
                 password.matches(".*[A-Z].*".toRegex()) && // At least one uppercase letter
                 password.matches(".*[a-z].*".toRegex()) && // At least one lowercase letter
                 password.matches(".*[0-9].*".toRegex()) && // At least one digit
@@ -84,7 +94,10 @@ class MainViewModel : ViewModel() {
             if (!isValidPassword(password)) {
                 _isLoading.value = false
                 val jsonError = JSONObject().apply {
-                    put("message", "Password must be 6-20 characters long, contain uppercase, lowercase, a digit, and a special character.")
+                    put(
+                        "message",
+                        "Password must be 6-20 characters long, contain uppercase, lowercase, a digit, and a special character."
+                    )
                 }.toString()
                 onError("Login failed: $jsonError")
                 return@launch
@@ -95,7 +108,6 @@ class MainViewModel : ViewModel() {
             onSuccess()
         }
     }
-
 
 
     // Function to handle user login
@@ -295,6 +307,54 @@ class MainViewModel : ViewModel() {
             }
         }
     }
+
+    //Function to display all the rewards
+    fun fetchRewardsFromServer(onError: (String) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _isLoading.value = true
+            try {
+                val url = URL("$server/reward/getRewards")
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "POST"
+                connection.setRequestProperty("Content-Type", "application/json")
+
+                val responseCode = connection.responseCode
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    val response = connection.inputStream.bufferedReader().use { it.readText() }
+                    val jsonResponse = JSONObject(response)
+                    val rewardsJsonArray = jsonResponse.getJSONArray("rewards")
+                    val rewardList = mutableListOf<RewardResponse>()
+
+                    for (i in 0 until rewardsJsonArray.length()) {
+                        val rewardObject = rewardsJsonArray.getJSONObject(i)
+                        val reward = RewardResponse(
+                            title = rewardObject.getString("rewardName"),
+                            description = rewardObject.getString("rewardDescription"),
+                            isClaimed = rewardObject.getBoolean("rewardActiveStatus"),
+                            name = rewardObject.getString("rewardPoints")
+                        )
+                        rewardList.add(reward)
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        _rewards.postValue(rewardList)
+                    }
+                    _isLoading.value = false
+                } else {
+                    onError("Failed to fetch rewards, response code: $responseCode")
+                    println("Error: $responseCode")
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    onError("Error fetching rewards: ${e.message}")
+                    println("Error while executing: ${e.message}")
+                }
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
 
     fun getUserPoints(context: Context) {
         val sharedPreferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)

@@ -39,10 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.cynthia.bottle_collection_system_android_application.ui.theme.BottlecollectionsystemandroidapplicationTheme
-import org.json.JSONException
 import org.json.JSONObject
-
-
 
 
 @Composable
@@ -52,7 +49,7 @@ fun RegisterComposable(
     navigateBack: () -> Unit,
     navigateToLogin: () -> Unit
 ) {
-    val context = LocalContext.current
+    LocalContext.current
     var email by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -69,7 +66,7 @@ fun RegisterComposable(
     val handleRegisterClick = {
         // Validate data
         isButtonEnabled = false
-        handleRegister(name, email, password, {
+        handleRegister(name, email, password) {
             // Show Error Dialog
             openAlertDialog = true
             messageTitle = "Could not register"
@@ -79,7 +76,7 @@ fun RegisterComposable(
             buttonText = "Retry"
             println(it)
             isButtonEnabled = true
-        })
+        }
     }
 
     when {
@@ -260,7 +257,7 @@ fun RegisterComposable(
             painter = painterResource(id = R.drawable.login_screen_image),
             contentDescription = "login Screen Bottom Image",
             modifier = Modifier
-                .fillMaxWidth() // Makes the image take up the entire width
+                .fillMaxWidth()
                 .padding(vertical = 16.dp),
             contentScale = ContentScale.Crop
         )
