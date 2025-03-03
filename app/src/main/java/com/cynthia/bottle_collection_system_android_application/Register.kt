@@ -41,6 +41,7 @@ import androidx.compose.ui.window.Dialog
 import com.cynthia.bottle_collection_system_android_application.ui.theme.BottlecollectionsystemandroidapplicationTheme
 import org.json.JSONObject
 
+
 @Composable
 fun RegisterComposable(
     modifier: Modifier = Modifier,
