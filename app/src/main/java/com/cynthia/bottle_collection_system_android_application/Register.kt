@@ -41,7 +41,6 @@ import androidx.compose.ui.window.Dialog
 import com.cynthia.bottle_collection_system_android_application.ui.theme.BottlecollectionsystemandroidapplicationTheme
 import org.json.JSONObject
 
-
 @Composable
 fun RegisterComposable(
     modifier: Modifier = Modifier,
@@ -60,21 +59,50 @@ fun RegisterComposable(
     var messageTitle by remember { mutableStateOf("") }
     var buttonText by remember { mutableStateOf("") }
 
+    var nameError by remember { mutableStateOf<String?>(null) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+    var confirmPasswordError by remember { mutableStateOf<String?>(null) }
 
+    fun validateName(name: String): String? {
+        return if (name.isEmpty()) "Name is required" else null
+    }
 
-    // move to ViewModel
+    fun validateEmail(email: String): String? {
+        if (email.isEmpty()) {
+            return "Email is required"
+        }
+        val emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+"
+        if (!email.matches(emailPattern.toRegex())) {
+            return "Invalid email format"
+        }
+        return null
+    }
+
+    fun validatePassword(password: String): String? {
+        if (password.length < 8) {
+            return "Password must be at least 8 characters"
+        }
+        val hasUppercase = password.any { it.isUpperCase() }
+        val hasLowercase = password.any { it.isLowerCase() }
+        val hasDigit = password.any { it.isDigit() }
+        val hasSpecial = password.any { !it.isLetterOrDigit() }
+        if (!hasUppercase) return "Must contain at least one uppercase letter"
+        if (!hasLowercase) return "Must contain at least one lowercase letter"
+        if (!hasDigit) return "Must contain at least one digit"
+        if (!hasSpecial) return "Must contain at least one special character"
+        return null
+    }
+
     val handleRegisterClick = {
-        // Validate data
         isButtonEnabled = false
         handleRegister(name, email, password) {
-            // Show Error Dialog
             openAlertDialog = true
             messageTitle = "Could not register"
             val jsonString = it.substringAfter(":").trim()
             val obj = JSONObject(jsonString)
             messageContent = obj.getString("message")
             buttonText = "Retry"
-            println(it)
             isButtonEnabled = true
         }
     }
@@ -131,7 +159,6 @@ fun RegisterComposable(
 
         }
 
-        // Heading Text
         Text(
             text = "Register",
             fontSize = 48.sp,
@@ -144,93 +171,157 @@ fun RegisterComposable(
                 .padding(16.dp)
                 .border(
                     2.dp, Color.Gray, shape = RoundedCornerShape(8.dp)
-                ) // Border with color, width, and rounded corners
-                .padding(16.dp) // Optional padding inside the Box
+                )
+                .padding(16.dp)
         ) {
             Column(
                 verticalArrangement = Arrangement.SpaceAround
             ) {
                 TextField(
                     value = name,
-                    onValueChange = { name = it },
+                    onValueChange = {
+                        name = it
+                        nameError = null
+                    },
                     label = { Text("Name") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 8.dp),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = MaterialTheme.colorScheme.tertiary,
-                        focusedLabelColor = MaterialTheme.colorScheme.tertiary,
-                        unfocusedIndicatorColor = Color.Gray,
-                        unfocusedLabelColor = Color.Gray,
+                        focusedIndicatorColor = if (nameError != null) Color.Red else MaterialTheme.colorScheme.tertiary,
+                        focusedLabelColor = if (nameError != null) Color.Red else MaterialTheme.colorScheme.tertiary,
+                        unfocusedIndicatorColor = if (nameError != null) Color.Red else Color.Gray,
+                        unfocusedLabelColor = if (nameError != null) Color.Red else Color.Gray,
                         unfocusedContainerColor = Color.Transparent
                     ),
                 )
+                if (nameError != null) {
+                    Text(
+                        text = nameError!!,
+                        color = Color.Red,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, bottom = 8.dp)
+                    )
+                }
+
                 TextField(
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = {
+                        email = it
+                        emailError = null
+                    },
                     label = { Text("Email") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 8.dp),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = MaterialTheme.colorScheme.tertiary,
-                        focusedLabelColor = MaterialTheme.colorScheme.tertiary,
-                        unfocusedIndicatorColor = Color.Gray,
-                        unfocusedLabelColor = Color.Gray,
+                        focusedIndicatorColor = if (emailError != null) Color.Red else MaterialTheme.colorScheme.tertiary,
+                        focusedLabelColor = if (emailError != null) Color.Red else MaterialTheme.colorScheme.tertiary,
+                        unfocusedIndicatorColor = if (emailError != null) Color.Red else Color.Gray,
+                        unfocusedLabelColor = if (emailError != null) Color.Red else Color.Gray,
                         unfocusedContainerColor = Color.Transparent
                     ),
                 )
+                if (emailError != null) {
+                    Text(
+                        text = emailError!!,
+                        color = Color.Red,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, bottom = 8.dp)
+                    )
+                }
 
                 TextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = {
+                        password = it
+                        passwordError = null
+                        if (confirmPassword.isNotEmpty() && it != confirmPassword) {
+                            confirmPasswordError = "Passwords do not match"
+                        } else {
+                            confirmPasswordError = null
+                        }
+                    },
                     label = { Text("Password") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 8.dp),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = MaterialTheme.colorScheme.tertiary,
-                        focusedLabelColor = MaterialTheme.colorScheme.tertiary,
-                        unfocusedIndicatorColor = Color.Gray,
-                        unfocusedLabelColor = Color.Gray,
+                        focusedIndicatorColor = if (passwordError != null) Color.Red else MaterialTheme.colorScheme.tertiary,
+                        focusedLabelColor = if (passwordError != null) Color.Red else MaterialTheme.colorScheme.tertiary,
+                        unfocusedIndicatorColor = if (passwordError != null) Color.Red else Color.Gray,
+                        unfocusedLabelColor = if (passwordError != null) Color.Red else Color.Gray,
                         unfocusedContainerColor = Color.Transparent
                     ),
                 )
+                if (passwordError != null) {
+                    Text(
+                        text = passwordError!!,
+                        color = Color.Red,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, bottom = 8.dp)
+                    )
+                }
 
                 TextField(
                     value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
+                    onValueChange = {
+                        confirmPassword = it
+                        confirmPasswordError = null
+                        if (it != password) {
+                            confirmPasswordError = "Passwords do not match"
+                        }
+                    },
                     label = { Text("Confirm Password") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 8.dp),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = MaterialTheme.colorScheme.tertiary,
-                        focusedLabelColor = MaterialTheme.colorScheme.tertiary,
-                        unfocusedIndicatorColor = Color.Gray,
-                        unfocusedLabelColor = Color.Gray,
+                        focusedIndicatorColor = if (confirmPasswordError != null) Color.Red else MaterialTheme.colorScheme.tertiary,
+                        focusedLabelColor = if (confirmPasswordError != null) Color.Red else MaterialTheme.colorScheme.tertiary,
+                        unfocusedIndicatorColor = if (confirmPasswordError != null) Color.Red else Color.Gray,
+                        unfocusedLabelColor = if (confirmPasswordError != null) Color.Red else Color.Gray,
                         unfocusedContainerColor = Color.Transparent
                     ),
                 )
+                if (confirmPasswordError != null) {
+                    Text(
+                        text = confirmPasswordError!!,
+                        color = Color.Red,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, bottom = 8.dp)
+                    )
+                }
 
                 Button(
                     onClick = {
-                        if (password == confirmPassword) {
+                        val nameErr = validateName(name)
+                        val emailErr = validateEmail(email)
+                        val passwordErr = validatePassword(password)
+                        val confirmErr = if (password != confirmPassword) "Passwords do not match" else null
+
+                        nameError = nameErr
+                        emailError = emailErr
+                        passwordError = passwordErr
+                        confirmPasswordError = confirmErr
+
+                        if (nameErr == null && emailErr == null && passwordErr == null && confirmErr == null) {
                             handleRegisterClick()
-                        } else {
-                            openAlertDialog = true
-                            messageTitle = "Error While Registering"
-                            messageContent = "Passwords do not match"
-                            buttonText = "Retry"
                         }
-                    }, colors = ButtonDefaults.buttonColors(
+                    },
+                    colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.secondary,
                         contentColor = MaterialTheme.colorScheme.surface
-                    ), modifier = Modifier
+                    ),
+                    modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
                 ) {
@@ -240,8 +331,7 @@ fun RegisterComposable(
                 Text(
                     text = "Forgot Password?",
                     fontSize = 16.sp,
-
-                    )
+                )
 
                 Text(
                     text = "Have an account? Login.",
