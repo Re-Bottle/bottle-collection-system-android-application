@@ -96,7 +96,9 @@ fun LoginComposable(
                 TextField(
                     value = email,
                     onValueChange = { email = it },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
                     label = { Text("Email") },
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,
@@ -104,7 +106,9 @@ fun LoginComposable(
                         focusedLabelColor = MaterialTheme.colorScheme.tertiary,
                         unfocusedIndicatorColor = Color.Gray,
                         unfocusedLabelColor = Color.Gray,
-                        unfocusedContainerColor = Color.Transparent
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
                     ),
                 )
 
@@ -112,14 +116,18 @@ fun LoginComposable(
                     value = password,
                     onValueChange = { password = it },
                     label = { Text("Password") },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,
                         focusedIndicatorColor = MaterialTheme.colorScheme.tertiary,
                         focusedLabelColor = MaterialTheme.colorScheme.tertiary,
                         unfocusedIndicatorColor = Color.Gray,
                         unfocusedLabelColor = Color.Gray,
-                        unfocusedContainerColor = Color.Transparent
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
                     ),
                 )
 

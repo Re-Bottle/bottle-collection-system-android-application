@@ -3,6 +3,7 @@ package com.cynthia.bottle_collection_system_android_application.home
 import android.util.Log
 import android.util.Size
 import android.view.Surface
+import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
@@ -31,15 +32,15 @@ import com.cynthia.bottle_collection_system_android_application.R
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 
-
 @OptIn(ExperimentalGetImage::class)
 @Composable
 fun ScanComposable(navigateBack: () -> Unit) {
-
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
     val barcodeScanner = BarcodeScanning.getClient()
+    var lastScannedCode = remember { "" }
+
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(
             modifier = Modifier.fillMaxSize(),
@@ -54,7 +55,6 @@ fun ScanComposable(navigateBack: () -> Unit) {
                         .build()
 
                     imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(viewContext)) { imageProxy ->
-                        // Process image for QR code detection
                         val mediaImage = imageProxy.image
                         if (mediaImage != null) {
                             val imageInfo = imageProxy.imageInfo
@@ -67,14 +67,19 @@ fun ScanComposable(navigateBack: () -> Unit) {
                                 .addOnSuccessListener { barcodes ->
                                     // Handle detected QR codes
                                     for (barcode in barcodes) {
-                                        // Update UI with detected code
-//                                    print(barcode)
-                                        Log.d("Scan Activity", "result: ${barcode.displayValue}")
+                                        val displayValue = barcode.displayValue
+                                        if (!displayValue.isNullOrEmpty() && displayValue != lastScannedCode) {
+                                            lastScannedCode = displayValue
+                                            Toast.makeText(
+                                                context,
+                                                "Scanned: $displayValue",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
                                     }
                                 }
                                 .addOnFailureListener {
-                                    // Handle errors
-                                    Log.d("Scan Activity", "error: ${it.message}")
+                                    Log.d("Scan Activity", "Error: ${it.message}")
                                 }
                                 .addOnCompleteListener {
                                     imageProxy.close()
@@ -97,6 +102,7 @@ fun ScanComposable(navigateBack: () -> Unit) {
                 previewView
             }
         )
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -114,7 +120,6 @@ fun ScanComposable(navigateBack: () -> Unit) {
             }
         }
     }
-
 }
 
 @androidx.compose.ui.tooling.preview.Preview

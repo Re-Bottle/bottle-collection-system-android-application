@@ -21,6 +21,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -194,7 +195,9 @@ fun RegisterComposable(
                         focusedLabelColor = if (nameError != null) Color.Red else MaterialTheme.colorScheme.tertiary,
                         unfocusedIndicatorColor = if (nameError != null) Color.Red else Color.Gray,
                         unfocusedLabelColor = if (nameError != null) Color.Red else Color.Gray,
-                        unfocusedContainerColor = Color.Transparent
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
                     ),
                 )
                 if (nameError != null) {
@@ -223,7 +226,9 @@ fun RegisterComposable(
                         focusedLabelColor = if (emailError != null) Color.Red else MaterialTheme.colorScheme.tertiary,
                         unfocusedIndicatorColor = if (emailError != null) Color.Red else Color.Gray,
                         unfocusedLabelColor = if (emailError != null) Color.Red else Color.Gray,
-                        unfocusedContainerColor = Color.Transparent
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
                     ),
                 )
                 if (emailError != null) {
@@ -257,7 +262,9 @@ fun RegisterComposable(
                         focusedLabelColor = if (passwordError != null) Color.Red else MaterialTheme.colorScheme.tertiary,
                         unfocusedIndicatorColor = if (passwordError != null) Color.Red else Color.Gray,
                         unfocusedLabelColor = if (passwordError != null) Color.Red else Color.Gray,
-                        unfocusedContainerColor = Color.Transparent
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
                     ),
                 )
                 if (passwordError != null) {
@@ -289,7 +296,9 @@ fun RegisterComposable(
                         focusedLabelColor = if (confirmPasswordError != null) Color.Red else MaterialTheme.colorScheme.tertiary,
                         unfocusedIndicatorColor = if (confirmPasswordError != null) Color.Red else Color.Gray,
                         unfocusedLabelColor = if (confirmPasswordError != null) Color.Red else Color.Gray,
-                        unfocusedContainerColor = Color.Transparent
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
                     ),
                 )
                 if (confirmPasswordError != null) {

@@ -31,15 +31,11 @@ class MainViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> get() = _isLoading
 
-    data class RewardResponse(
-        val title: String,
-        val description: String,
-        val isClaimed: Boolean,
-        val name: String
-    )
-
     private val _rewards = MutableLiveData<List<RewardResponse>>()
     val rewards: LiveData<List<RewardResponse>> get() = _rewards
+
+    private val _pointTransactions = MutableLiveData<List<PointsLists>>()
+    val pointTransactions: LiveData<List<PointsLists>> get() = _pointTransactions
 
     companion object {
         private const val PREFERENCES_NAME = "auth_preferences"
@@ -59,7 +55,7 @@ class MainViewModel : ViewModel() {
 
     // Function to check email validation
     private fun isValidEmail(email: String): Boolean {
-        return email.isNotEmpty() && Patterns.EMAIL_ADDRESS.matcher(email)
+        return Patterns.EMAIL_ADDRESS.matcher(email)
             .matches() && !email.contains(" ")
     }
 
@@ -81,10 +77,17 @@ class MainViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             // Email validation
-            if (!isValidEmail(email)) {
+            if (email.isEmpty() || password.isEmpty()) {
                 _isLoading.value = false
                 val jsonError = JSONObject().apply {
-                    put("message", "Invalid email format or contains spaces.")
+                    put("message", "Please fill in both email and password fields.")
+                }.toString()
+                onError("Login failed: $jsonError")
+                return@launch
+            } else if (!isValidEmail(email)) {
+                _isLoading.value = false
+                val jsonError = JSONObject().apply {
+                    put("message", "Please enter a valid email address.")
                 }.toString()
                 onError("Login failed: $jsonError")
                 return@launch
@@ -96,7 +99,7 @@ class MainViewModel : ViewModel() {
                 val jsonError = JSONObject().apply {
                     put(
                         "message",
-                        "Password must be 6-20 characters long, contain uppercase, lowercase, a digit, and a special character."
+                        "Password must be 6-20 characters with uppercase, lowercase, a digit, and a special character."
                     )
                 }.toString()
                 onError("Login failed: $jsonError")
@@ -355,6 +358,15 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    fun fetchPointTransactionsFromServer() {
+        // Simulating fetching transactions
+        val transactions = mutableListOf (
+            PointsLists(date = "2025-02-26", points = 10, description = "Recycled 1 bottle"),
+            PointsLists(date = "2025-02-25", points = 20, description = "Recycled 2 bottles"),
+            PointsLists(date = "2025-02-24", points = 15, description = "Recycled 1 bottle")
+        )
+        _pointTransactions.postValue(transactions)
+    }
 
     fun getUserPoints(context: Context) {
         val sharedPreferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)

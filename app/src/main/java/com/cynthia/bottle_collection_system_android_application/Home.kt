@@ -9,6 +9,8 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -18,6 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.cynthia.bottle_collection_system_android_application.home.AccountComposable
+import com.cynthia.bottle_collection_system_android_application.home.HistoryComposable
 import com.cynthia.bottle_collection_system_android_application.home.HomeComposable
 import com.cynthia.bottle_collection_system_android_application.home.ScanComposable
 import com.cynthia.bottle_collection_system_android_application.ui.theme.BottlecollectionsystemandroidapplicationTheme
@@ -45,11 +48,11 @@ fun HomeNavGraph(
                 )
             }
             composable("history") {
-                AccountComposable(
+                HistoryComposable(
+                    viewModel,
                     navigateBack = { navController.popBackStack("home", false) },
-                    handleLogout = {
-
-                    }, name = ""
+                    points = viewModel.points,
+                    name = viewModel.name,
                 )
             }
 

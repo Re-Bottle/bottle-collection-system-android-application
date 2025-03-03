@@ -135,7 +135,7 @@ fun AppNavGraph(mainViewModel: MainViewModel) {
             AlertDialog(
                 onDismissRequest = { mainViewModel.checkServerConnection({}, {}) },
                 confirmButton = {
-                    Button(onClick = { mainViewModel.checkServerConnection({}, {}) }) {
+                    Button(onClick = { mainViewModel.checkServerConnection({}, onError={errorMessage-> println("Error on retry: $errorMessage")}) }) {
                         Text("Retry")
                     }
                 },
