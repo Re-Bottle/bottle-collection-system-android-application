@@ -60,6 +60,7 @@ dependencies {
     implementation(libs.androidx.camera.camera2)
     implementation(libs.mlkit.barcode.scanning)
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.androidx.animation.graphics.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -4,14 +4,17 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-02-17T13:37:50.527531700Z">
+        <DropdownSelection timestamp="2025-03-07T17:44:02.427130Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=37b91aa8" />
+              <DeviceId pluginId="Default" identifier="serial=adb-37b91aa8-Vij5LN._adb-tls-pairing._tcp;connection=bccc406b" />
             </handle>
           </Target>
         </DropdownSelection>
         <DialogSelection />
+      </SelectionState>
+      <SelectionState runConfigName="HistoryComposablePreview">
+        <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>
   </component>

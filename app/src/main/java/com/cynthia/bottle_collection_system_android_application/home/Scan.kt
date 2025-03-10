@@ -11,6 +11,12 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
+import androidx.compose.animation.graphics.res.animatedVectorResource
+import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
+import androidx.compose.animation.graphics.vector.AnimatedImageVector
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,8 +26,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -29,17 +42,26 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.cynthia.bottle_collection_system_android_application.R
+import com.cynthia.bottle_collection_system_android_application.viewmodel.MainViewModel
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 
+
 @OptIn(ExperimentalGetImage::class)
 @Composable
-fun ScanComposable(navigateBack: () -> Unit) {
+fun ScanComposable(viewModel: MainViewModel, navigateBack: () -> Unit, name: String) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
     val barcodeScanner = BarcodeScanning.getClient()
+
+    val isScanComplete by viewModel.isScanComplete.collectAsState()
+    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
     var lastScannedCode = remember { "" }
+
+    LaunchedEffect(Unit) {
+        viewModel.resetScanState()
+    }
+
 
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(
@@ -65,7 +87,6 @@ fun ScanComposable(navigateBack: () -> Unit) {
 
                             barcodeScanner.process(inputImage)
                                 .addOnSuccessListener { barcodes ->
-                                    // Handle detected QR codes
                                     for (barcode in barcodes) {
                                         val displayValue = barcode.displayValue
                                         if (!displayValue.isNullOrEmpty() && displayValue != lastScannedCode) {
@@ -75,6 +96,15 @@ fun ScanComposable(navigateBack: () -> Unit) {
                                                 "Scanned: $displayValue",
                                                 Toast.LENGTH_SHORT
                                             ).show()
+// TODO: fix isScanComplete to how a popup or animation
+                                            viewModel.claimScan(
+                                                userId = name,
+                                                scanData = displayValue,
+
+                                                onError = { errorMessage ->
+                                                    println("Error while claiming: $errorMessage")
+                                                },
+                                                onSuccess = {})
                                         }
                                     }
                                 }
@@ -103,6 +133,17 @@ fun ScanComposable(navigateBack: () -> Unit) {
             }
         )
 
+        // Bounding Box Overlay
+        Box(modifier = Modifier.fillMaxSize()) {
+            androidx.compose.foundation.Image(
+                painter = painterResource(id = if (isScanComplete) R.drawable.bounding_box_scanned else R.drawable.bounding_box_for_scan),
+                contentDescription = "Bounding Box",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(50.dp)
+            )
+        }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -118,6 +159,16 @@ fun ScanComposable(navigateBack: () -> Unit) {
                     contentDescription = "Back Arrow",
                 )
             }
+
+            if (isScanComplete) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.coin),
+                        contentDescription = "rewarded",
+                        tint = Color(0xFFFFD700)
+                    )
+                }
+            }
         }
     }
 }
@@ -125,5 +176,5 @@ fun ScanComposable(navigateBack: () -> Unit) {
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun ScanPreview() {
-    ScanComposable { }
+    ScanComposable(viewModel = MainViewModel(), navigateBack = {}, name = "John Doe")
 }

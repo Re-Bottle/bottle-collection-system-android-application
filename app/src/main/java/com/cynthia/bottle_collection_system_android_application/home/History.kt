@@ -1,7 +1,17 @@
 package com.cynthia.bottle_collection_system_android_application.home
 
+import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,8 +23,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,12 +43,8 @@ import com.cynthia.bottle_collection_system_android_application.R
 import com.cynthia.bottle_collection_system_android_application.ui.theme.BottlecollectionsystemandroidapplicationTheme
 import com.cynthia.bottle_collection_system_android_application.viewmodel.MainViewModel
 import com.cynthia.bottle_collection_system_android_application.viewmodel.PointsLists
+import com.cynthia.bottle_collection_system_android_application.viewmodel.Scans
 
-data class PointsLists(
-    val date: String,
-    val points: Int,
-    val description: String
-)
 
 @Composable
 fun HistoryComposable(
@@ -46,9 +55,19 @@ fun HistoryComposable(
     name: String
 ) {
     val pointTransactions by viewModel.pointTransactions.observeAsState(emptyList())
+    val userId = "Testing from App"
+    val scans by viewModel.scansLiveData.observeAsState(emptyList())
+    val isLoading by viewModel.isLoading.collectAsState()
+
+    val errorMessage by remember { mutableStateOf<String?>(null) }
+
+//    if (isLoading) {
+//        CircularProgressIndicator()
+//    }
 
     LaunchedEffect(Unit) {
-        viewModel.fetchPointTransactionsFromServer() // Fetch point transactions from server
+        viewModel.fetchScanTransactionsFromServer()
+        viewModel.getScansByUser(userId) { error -> Log.e("Error is the scannn", error) }
     }
 
     Column(
@@ -94,7 +113,9 @@ fun HistoryComposable(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Hi ${name.take(20)}, \nEarn rewards while recycling!",
+                    text = "Hi ${
+                        name.replaceFirstChar { it.uppercaseChar() }.take(20)
+                    }, \nEarn rewards while recycling!",
                     fontSize = 20.sp,
                     textAlign = TextAlign.Start,
                     color = MaterialTheme.colorScheme.surface,
@@ -107,7 +128,9 @@ fun HistoryComposable(
                     Icon(
                         painter = painterResource(id = R.drawable.coin),
                         contentDescription = "Coin",
-                        modifier = Modifier.size(50.dp)
+                        modifier = Modifier
+                            .size(50.dp),
+                        tint = Color(0xFFFFD700)
                     )
                     Text(
                         modifier = Modifier.align(Alignment.CenterVertically),
@@ -132,11 +155,20 @@ fun HistoryComposable(
 
         // Point History Card
         PointHistoryCard(pointTransactions = pointTransactions)
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(scans) { scan ->
+                ScanCard(scan = scan)
+            }
+        }
+
     }
 }
 
 @Composable
-fun PointHistoryCard(pointTransactions: List<com.cynthia.bottle_collection_system_android_application.viewmodel.PointsLists>) {
+fun PointHistoryCard(pointTransactions: List<PointsLists>) {
     // If the list is null or empty, show "Nothing to show" message
     Card(
         modifier = Modifier
@@ -226,20 +258,20 @@ fun TransactionItemCard(transaction: PointsLists) {
             ) {
                 Text(
                     text = "Transaction: ${transaction.description}",
-                    fontSize = 16.sp,
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Date: ${transaction.date}",
-                    fontSize = 14.sp,
+                    fontSize = 10.sp,
                     color = Color.Gray
                 )
             }
             Text(
                 text = " +${transaction.points} Points",
-                fontSize = 16.sp,
+                fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.secondary
             )
@@ -247,11 +279,62 @@ fun TransactionItemCard(transaction: PointsLists) {
     }
 }
 
+@Composable
+fun ScansScreen(viewModel: MainViewModel) {
+    val userId = "user123"
+
+    LaunchedEffect(Unit) {
+        viewModel.getScansByUser(userId) { error ->
+
+            Log.e("Error", error)
+        }
+    }
+
+    val scans by viewModel.scansLiveData.observeAsState(emptyList())
+    val isLoading by viewModel.isLoading.collectAsState()
+
+    val errorMessage by remember { mutableStateOf<String?>(null) }
+
+
+
+    errorMessage?.let {
+        Text(text = it, color = Color.Red)
+    }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        items(scans) { scan ->
+            ScanCard(scan = scan)
+        }
+    }
+}
+
+@Composable
+fun ScanCard(scan: Scans) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .shadow(5.dp, shape = RoundedCornerShape(8.dp)),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(text = "ID: ${scan.id}", fontWeight = FontWeight.Bold)
+            Text(text = "Claimed by: ${scan.claimedBy}")
+            Text(text = "Device ID: ${scan.deviceId}")
+            Text(text = "Claimed on: ${scan.timestamp}")
+            Text(text = "Scan Data: ${scan.scanData}")
+        }
+    }
+}
+
+
 @Preview(showBackground = true)
 @Composable
 fun HistoryComposablePreview() {
     BottlecollectionsystemandroidapplicationTheme {
-
+//        ScansScreen(viewModel = MainViewModel())
         HistoryComposable(
             viewModel = MainViewModel(),
             navigateBack = { },

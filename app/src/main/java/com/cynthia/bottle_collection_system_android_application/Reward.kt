@@ -1,5 +1,9 @@
 package com.cynthia.bottle_collection_system_android_application
 
+import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
+import androidx.compose.animation.graphics.res.animatedVectorResource
+import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
+import androidx.compose.animation.graphics.vector.AnimatedImageVector
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,7 +23,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -30,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -115,7 +119,7 @@ fun RewardCard(reward: Reward, onClick: () -> Unit, logo: ImageBitmap? = null) {
 
             Text(
                 text = reward.title,
-                fontSize = 20.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
@@ -123,7 +127,7 @@ fun RewardCard(reward: Reward, onClick: () -> Unit, logo: ImageBitmap? = null) {
 
             Text(
                 text = reward.description,
-                fontSize = 12.sp,
+                fontSize = 8.sp,
                 color = Color.DarkGray
             )
             Spacer(modifier = Modifier.height(12.dp))
@@ -131,6 +135,23 @@ fun RewardCard(reward: Reward, onClick: () -> Unit, logo: ImageBitmap? = null) {
     }
 }
 
+
+@OptIn(ExperimentalAnimationGraphicsApi::class)
+@Composable
+fun AnimatedVectorDrawable() {
+    val image = AnimatedImageVector.animatedVectorResource(R.drawable.ic_hourglass_animated)
+    var atEnd by remember { mutableStateOf(false) }
+    Box(modifier = Modifier.fillMaxSize()){
+        Image(
+            painter = rememberAnimatedVectorPainter(image, atEnd),
+            contentDescription = "Timer",
+            modifier = Modifier.clickable {
+                atEnd = !atEnd
+            },
+            contentScale = ContentScale.Crop
+        )
+    }
+}
 
 @Composable
 fun RewardComposable(viewModel: MainViewModel, navigateBack: () -> Unit) {
@@ -157,7 +178,8 @@ fun RewardComposable(viewModel: MainViewModel, navigateBack: () -> Unit) {
                 .background(Color.Black.copy(alpha = 0.5f), shape = RoundedCornerShape(16.dp))
                 .clickable(enabled = false) {}
         ) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+//            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            AnimatedVectorDrawable()
         }
     }
 
