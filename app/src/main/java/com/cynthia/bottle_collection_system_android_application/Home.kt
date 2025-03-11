@@ -57,7 +57,7 @@ fun HomeNavGraph(
             }
 
             composable("scan") {
-                ScanComposable(viewModel,navigateBack = { navController.popBackStack("home", false) }, name = viewModel.name)
+                ScanComposable(viewModel,navigateBack = { navController.popBackStack("home", false) }, userId = viewModel.userId)
             }
 
             composable("account") {

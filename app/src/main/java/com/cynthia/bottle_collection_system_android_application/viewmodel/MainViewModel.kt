@@ -19,12 +19,13 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class MainViewModel : ViewModel() {
-    val points: Int = 0
+    var points: Int = 0
     private var email: String = ""
     var name: String = ""
+    var userId: String = ""
 
     private val server: String =
-        "http://192.168.1.8:3000" // for emulator to connect to localhost
+        "http://192.168.222.155:3000"
     private val _isConnectedToServer = MutableLiveData<Boolean?>(null)
     val isConnectedToServer: LiveData<Boolean?> get() = _isConnectedToServer
 
@@ -37,9 +38,6 @@ class MainViewModel : ViewModel() {
     private val _rewards = MutableLiveData<List<RewardResponse>>()
     val rewards: LiveData<List<RewardResponse>> get() = _rewards
 
-    private val _pointTransactions = MutableLiveData<List<PointsLists>>()
-    val pointTransactions: LiveData<List<PointsLists>> get() = _pointTransactions
-
     private val _isScanComplete = MutableStateFlow(false)
     val isScanComplete: StateFlow<Boolean> get() = _isScanComplete
 
@@ -51,6 +49,7 @@ class MainViewModel : ViewModel() {
         private const val TOKEN_KEY = "jwt_token"
         private const val EMAIL_KEY = "user_email"
         private const val NAME_KEY = "user_name"
+        private const val ID_KEY = "user_id"
     }
 
     // Function to handle the loading indicators
@@ -173,10 +172,13 @@ class MainViewModel : ViewModel() {
                                 connection.inputStream.bufferedReader().use { it.readText() }
                             try {
                                 val jsonResponse = JSONObject(response)
+                                val userId = jsonResponse.optString("id")
                                 val name = jsonResponse.optString("name")
-                                if (name.isNotEmpty()) {
+                                if (name.isNotEmpty() && userId.isNotEmpty()) {
                                     this@MainViewModel.name = name
+                                    this@MainViewModel.userId = userId
                                     sharedPreferences.edit().putString(NAME_KEY, name).apply()
+                                    sharedPreferences.edit().putString(ID_KEY, userId).apply()
                                     withContext(Dispatchers.Main) { onSuccess() }
                                 } else {
                                     onError("Login failed: 'name' not found in response")
@@ -308,6 +310,7 @@ class MainViewModel : ViewModel() {
                     _isLoggedIn.postValue(true)
                     this@MainViewModel.email = sharedPreferences.getString(EMAIL_KEY, "").toString()
                     this@MainViewModel.name = sharedPreferences.getString(NAME_KEY, "").toString()
+                    this@MainViewModel.userId = sharedPreferences.getString(ID_KEY, "").toString()
                 } else {
                     // Handle invalid token, clear token from shared preferences
                     _isLoggedIn.postValue(false)
@@ -366,34 +369,6 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun fetchScanTransactionsFromServer() {
-        // Simulating fetching transactions
-        // TODO: access the scan table using api call to backend for that user.  check scan table with userId as key (may require to create table again), based on user fetch scans claimed by that user.
-        val transactions = mutableListOf(
-            PointsLists(date = "2025-02-26", points = 10, description = "Recycled 1 bottle"),
-            PointsLists(date = "2025-02-25", points = 20, description = "Recycled 2 bottles"),
-            PointsLists(date = "2025-02-24", points = 15, description = "Recycled 1 bottle")
-        )
-        _pointTransactions.postValue(transactions)
-
-        try {
-            val url = URL("$server/scan/getScans")
-            val connection = url.openConnection() as HttpURLConnection
-            connection.requestMethod = "GET"
-//                connection.setRequestProperty("Cookie", "auth_token=$token")
-
-            val responseCode = connection.responseCode
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-//                    _isLoggedIn.postValue(true)
-            } else {
-//                    _isLoggedIn.postValue(false)
-//                    sharedPreferences.edit().remove(TOKEN_KEY).apply() // Clear invalid token
-            }
-            connection.disconnect()
-        } catch (e: Exception) {
-            _isLoggedIn.postValue(false)
-        }
-    }
 
     fun getScansByUser(userId: String, onError: (String) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -407,15 +382,14 @@ class MainViewModel : ViewModel() {
 
                 val jsonBody = JSONObject().put("userId", userId)
                 connection.outputStream.write(jsonBody.toString().toByteArray())
-                print("Flag 1")
                 when (val responseCode = connection.responseCode) {
                     HttpURLConnection.HTTP_OK -> {
+                        points = 0
                         val inputStream = connection.inputStream
                         val response = inputStream.bufferedReader().use { it.readText() }
                         val jsonResponse = JSONObject(response)
                         val scansJsonArray = jsonResponse.getJSONArray("scans")
                         val scanList = mutableListOf<Scans>()
-                        println("Flag 2")
 
                         for (i in 0 until scansJsonArray.length()) {
                             val scanObject = scansJsonArray.getJSONObject(i)
@@ -424,15 +398,16 @@ class MainViewModel : ViewModel() {
                                 claimedBy = scanObject.getString("claimedBy"),
                                 deviceId = scanObject.getString("deviceId"),
                                 scanData = scanObject.getString("scanData"),
-                                timestamp = scanObject.getString("timestamp")
+                                timestamp = scanObject.getString("timestamp"),
+                                bottleType = scanObject.getInt("bottleType")
                             )
                             scanList.add(scan)
+                            points += (scan.bottleType).toInt()
                         }
 
                         withContext(Dispatchers.Main) {
                             _scansLiveData.postValue(scanList)
                         }
-                        _isLoading.value = false
                     }
 
                     HttpURLConnection.HTTP_NO_CONTENT -> {
@@ -445,6 +420,7 @@ class MainViewModel : ViewModel() {
                         onError(errorMessage)
                     }
                 }
+                _isLoading.value = false
                 connection.disconnect()
             } catch (e: Exception) {
                 val errorMessage = e.message ?: "An unexpected error occurred"
@@ -461,7 +437,6 @@ class MainViewModel : ViewModel() {
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                println("Claiming......................... $userId, $scanData")
                 val url = URL("$server/scan/claimScan")
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "PUT"
@@ -478,17 +453,15 @@ class MainViewModel : ViewModel() {
                 outputStream.flush()
 
                 val responseCode = connection.responseCode
-                println("Response------------- $responseCode")
                 if (responseCode == HttpURLConnection.HTTP_OK) {
-                    // Handle success, parse the response if needed
                     withContext(Dispatchers.Main) {
+                        _isScanComplete.value = true
                         onSuccess()
                     }
                 }
-//                if (responseCode == HttpURLConnection.HTTP_BAD_REQUEST) {
-//                    _isScanComplete.value = true
-//                }
-                else {
+                if (responseCode == HttpURLConnection.HTTP_BAD_REQUEST) {
+                    _isScanComplete.value = false
+                } else {
                     // Read the error message from the response
                     val errorMessage = connection.inputStream.bufferedReader().readText()
                     withContext(Dispatchers.Main) {

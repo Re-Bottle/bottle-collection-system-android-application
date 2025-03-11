@@ -5,5 +5,6 @@ data class Scans(
     val claimedBy: String,
     val deviceId: String,
     val scanData: String,
-    val timestamp: String
+    val timestamp: String,
+    val bottleType: Number
 )

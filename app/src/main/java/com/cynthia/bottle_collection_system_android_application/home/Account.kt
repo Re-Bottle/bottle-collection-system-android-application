@@ -195,7 +195,8 @@ fun AccountComposable(
 
         ) {
             Text(
-                text = name.take(20),
+
+                text = name.replaceFirstChar { it.uppercaseChar() }.take(20),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,

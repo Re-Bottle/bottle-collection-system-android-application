@@ -17,8 +17,7 @@
         android:pathData="M5,15C5,51.8 5,5 5,5L10.19,5L30,5"
         android:strokeColor="#FF007F00"
         android:strokeWidth="2"/>
-    <group
-        android:translateY="-50">
+
         <path
             android:fillColor="#00000000"
             android:fillType="evenOdd"
@@ -31,7 +30,6 @@
             android:pathData="M5,200C5,200 5,210 5,225L30.90,225L7,225"
             android:strokeColor="#FF007F00"
             android:strokeWidth="2"/>
-    </group>
 
     <!-- Recycle Icon -->
     <group

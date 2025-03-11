@@ -49,7 +49,7 @@ import com.google.mlkit.vision.common.InputImage
 
 @OptIn(ExperimentalGetImage::class)
 @Composable
-fun ScanComposable(viewModel: MainViewModel, navigateBack: () -> Unit, name: String) {
+fun ScanComposable(viewModel: MainViewModel, navigateBack: () -> Unit, userId: String) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val barcodeScanner = BarcodeScanning.getClient()
@@ -61,7 +61,6 @@ fun ScanComposable(viewModel: MainViewModel, navigateBack: () -> Unit, name: Str
     LaunchedEffect(Unit) {
         viewModel.resetScanState()
     }
-
 
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(
@@ -98,13 +97,15 @@ fun ScanComposable(viewModel: MainViewModel, navigateBack: () -> Unit, name: Str
                                             ).show()
 // TODO: fix isScanComplete to how a popup or animation
                                             viewModel.claimScan(
-                                                userId = name,
+                                                userId = userId,
                                                 scanData = displayValue,
 
                                                 onError = { errorMessage ->
                                                     println("Error while claiming: $errorMessage")
                                                 },
-                                                onSuccess = {})
+                                                onSuccess = {
+
+                                                })
                                         }
                                     }
                                 }
@@ -135,7 +136,7 @@ fun ScanComposable(viewModel: MainViewModel, navigateBack: () -> Unit, name: Str
 
         // Bounding Box Overlay
         Box(modifier = Modifier.fillMaxSize()) {
-            androidx.compose.foundation.Image(
+            Image(
                 painter = painterResource(id = if (isScanComplete) R.drawable.bounding_box_scanned else R.drawable.bounding_box_for_scan),
                 contentDescription = "Bounding Box",
                 modifier = Modifier
@@ -176,5 +177,5 @@ fun ScanComposable(viewModel: MainViewModel, navigateBack: () -> Unit, name: Str
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun ScanPreview() {
-    ScanComposable(viewModel = MainViewModel(), navigateBack = {}, name = "John Doe")
+    ScanComposable(viewModel = MainViewModel(), navigateBack = {}, userId = "12345")
 }

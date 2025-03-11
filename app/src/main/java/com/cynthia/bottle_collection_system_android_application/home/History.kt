@@ -1,9 +1,11 @@
 package com.cynthia.bottle_collection_system_android_application.home
 
-import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,11 +14,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,13 +41,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cynthia.bottle_collection_system_android_application.R
 import com.cynthia.bottle_collection_system_android_application.ui.theme.BottlecollectionsystemandroidapplicationTheme
 import com.cynthia.bottle_collection_system_android_application.viewmodel.MainViewModel
-import com.cynthia.bottle_collection_system_android_application.viewmodel.PointsLists
 import com.cynthia.bottle_collection_system_android_application.viewmodel.Scans
 
 
@@ -54,20 +59,26 @@ fun HistoryComposable(
     points: Int,
     name: String
 ) {
-    val pointTransactions by viewModel.pointTransactions.observeAsState(emptyList())
-    val userId = "Testing from App"
-    val scans by viewModel.scansLiveData.observeAsState(emptyList())
     val isLoading by viewModel.isLoading.collectAsState()
-
-    val errorMessage by remember { mutableStateOf<String?>(null) }
-
-//    if (isLoading) {
-//        CircularProgressIndicator()
-//    }
+    val scans by viewModel.scansLiveData.observeAsState(emptyList())
 
     LaunchedEffect(Unit) {
-        viewModel.fetchScanTransactionsFromServer()
-        viewModel.getScansByUser(userId) { error -> Log.e("Error is the scannn", error) }
+//        points = 0
+        viewModel.getScansByUser(viewModel.userId, onError = { errorMessage ->
+            println("Error loading rewards: $errorMessage")
+        })
+    }
+
+
+    if (isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f), shape = RoundedCornerShape(16.dp))
+                .clickable(enabled = false) {}
+        ) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        }
     }
 
     Column(
@@ -81,13 +92,13 @@ fun HistoryComposable(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 25.dp)
+                .padding(horizontal = 16.dp, vertical = 24.dp)
         ) {
             IconButton(
                 onClick = {
                     navigateBack()
                 },
-                modifier = Modifier.size(50.dp)
+                modifier = Modifier.size(64.dp)
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.back_arrow),
@@ -99,9 +110,9 @@ fun HistoryComposable(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 10.dp)
-                .shadow(8.dp, shape = RoundedCornerShape(12.dp))
-                .clip(RoundedCornerShape(12.dp)),
+                .padding(horizontal = 8.dp, vertical = 8.dp)
+                .shadow(8.dp, shape = RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(16.dp)),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
             )
@@ -116,12 +127,12 @@ fun HistoryComposable(
                     text = "Hi ${
                         name.replaceFirstChar { it.uppercaseChar() }.take(20)
                     }, \nEarn rewards while recycling!",
-                    fontSize = 20.sp,
+                    fontSize = 16.sp,
                     textAlign = TextAlign.Start,
                     color = MaterialTheme.colorScheme.surface,
                     style = MaterialTheme.typography.headlineMedium,
                 )
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 Row(
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 ) {
@@ -129,13 +140,13 @@ fun HistoryComposable(
                         painter = painterResource(id = R.drawable.coin),
                         contentDescription = "Coin",
                         modifier = Modifier
-                            .size(50.dp),
+                            .size(64.dp),
                         tint = Color(0xFFFFD700)
                     )
                     Text(
                         modifier = Modifier.align(Alignment.CenterVertically),
                         text = " $points Points",
-                        fontSize = 20.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.surface
                     )
@@ -144,32 +155,21 @@ fun HistoryComposable(
 
                 Text(
                     text = "Total points earned",
-                    fontSize = 14.sp,
+                    fontSize = 16.sp,
                     color = Color.Green,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Point History Card
-        PointHistoryCard(pointTransactions = pointTransactions)
-
-        LazyColumn(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(scans) { scan ->
-                ScanCard(scan = scan)
-            }
-        }
-
+        ScanHistoryCard(scanTransactions = scans)
     }
 }
 
 @Composable
-fun PointHistoryCard(pointTransactions: List<PointsLists>) {
-    // If the list is null or empty, show "Nothing to show" message
+fun ScanHistoryCard(scanTransactions: List<Scans>) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -177,7 +177,7 @@ fun PointHistoryCard(pointTransactions: List<PointsLists>) {
             .clip(RoundedCornerShape(12.dp))
             .shadow(10.dp, shape = RoundedCornerShape(12.dp)),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = Color(0xFFFFD700),
         )
     ) {
         Column(
@@ -186,11 +186,11 @@ fun PointHistoryCard(pointTransactions: List<PointsLists>) {
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (pointTransactions.isEmpty()) {
+            if (scanTransactions.isEmpty()) {
                 Text(
                     text = "Nothing to show",
                     fontSize = 25.sp,
-                    color = Color.Gray,
+                    color = Color.Black,
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Spacer(modifier = Modifier.height(10.dp))
@@ -215,19 +215,19 @@ fun PointHistoryCard(pointTransactions: List<PointsLists>) {
                 }
             } else {
                 Text(
-                    text = "Points History",
+                    text = "Scan History",
                     fontSize = 25.sp,
                     textAlign = TextAlign.Start,
-                    color = MaterialTheme.colorScheme.secondary,
+                    color = Color.Black,
                     style = MaterialTheme.typography.headlineMedium,
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    contentPadding = PaddingValues(8.dp)
                 ) {
-                    items(pointTransactions) { transaction ->  // Corrected to pass the transaction
-                        TransactionItemCard(transaction = transaction)  // Pass the individual transaction
+                    items(scanTransactions) { transaction ->
+                        TransactionItemCard(transaction = transaction)
                     }
                 }
             }
@@ -236,95 +236,91 @@ fun PointHistoryCard(pointTransactions: List<PointsLists>) {
 }
 
 @Composable
-fun TransactionItemCard(transaction: PointsLists) {
-    // Custom layout to display each transaction
+fun TransactionItemCard(transaction: Scans) {
+    var isExpanded by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .clip(RoundedCornerShape(8.dp))
-            .shadow(5.dp, shape = RoundedCornerShape(8.dp)),
+            .shadow(6.dp, shape = RoundedCornerShape(8.dp))
+            .clickable { isExpanded = !isExpanded },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(14.dp)
         ) {
-            Column(
-                horizontalAlignment = Alignment.Start
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = "Date: ${transaction.timestamp}",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Device: ${transaction.deviceId}",
+                        fontSize = 10.sp,
+                        color = Color.Gray,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                Column(
+                    modifier = Modifier.wrapContentWidth(),
+                    horizontalAlignment = Alignment.End
+                ) {
+                    Text(
+                        text = "+${transaction.bottleType} Points",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.secondary,
+                        textAlign = TextAlign.End
+                    )
+                }
+            }
+
+            if (isExpanded) {
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Transaction: ${transaction.description}",
-                    fontSize = 12.sp,
+                    text = "Full Details:",
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Transaction ID: ${transaction.id}",
+                    fontSize = 12.sp,
                     color = Color.Black
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Date: ${transaction.date}",
-                    fontSize = 10.sp,
+                    text = "Claimed By: ${transaction.claimedBy}",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Scan Data: ${transaction.scanData}",
+                    fontSize = 12.sp,
                     color = Color.Gray
                 )
             }
-            Text(
-                text = " +${transaction.points} Points",
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.secondary
-            )
-        }
-    }
-}
-
-@Composable
-fun ScansScreen(viewModel: MainViewModel) {
-    val userId = "user123"
-
-    LaunchedEffect(Unit) {
-        viewModel.getScansByUser(userId) { error ->
-
-            Log.e("Error", error)
-        }
-    }
-
-    val scans by viewModel.scansLiveData.observeAsState(emptyList())
-    val isLoading by viewModel.isLoading.collectAsState()
-
-    val errorMessage by remember { mutableStateOf<String?>(null) }
-
-
-
-    errorMessage?.let {
-        Text(text = it, color = Color.Red)
-    }
-
-    LazyColumn(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        items(scans) { scan ->
-            ScanCard(scan = scan)
-        }
-    }
-}
-
-@Composable
-fun ScanCard(scan: Scans) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .shadow(5.dp, shape = RoundedCornerShape(8.dp)),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = "ID: ${scan.id}", fontWeight = FontWeight.Bold)
-            Text(text = "Claimed by: ${scan.claimedBy}")
-            Text(text = "Device ID: ${scan.deviceId}")
-            Text(text = "Claimed on: ${scan.timestamp}")
-            Text(text = "Scan Data: ${scan.scanData}")
         }
     }
 }
@@ -334,7 +330,6 @@ fun ScanCard(scan: Scans) {
 @Composable
 fun HistoryComposablePreview() {
     BottlecollectionsystemandroidapplicationTheme {
-//        ScansScreen(viewModel = MainViewModel())
         HistoryComposable(
             viewModel = MainViewModel(),
             navigateBack = { },
