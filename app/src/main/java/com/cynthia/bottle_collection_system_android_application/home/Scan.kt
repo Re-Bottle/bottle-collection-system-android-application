@@ -1,6 +1,8 @@
 package com.cynthia.bottle_collection_system_android_application.home
 
-import android.util.Log
+import android.Manifest
+import android.content.Intent
+import android.provider.Settings
 import android.util.Size
 import android.view.Surface
 import android.widget.Toast
@@ -11,12 +13,7 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
-import androidx.compose.animation.graphics.res.animatedVectorResource
-import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
-import androidx.compose.animation.graphics.vector.AnimatedImageVector
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,12 +26,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -45,7 +39,6 @@ import com.cynthia.bottle_collection_system_android_application.R
 import com.cynthia.bottle_collection_system_android_application.viewmodel.MainViewModel
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
-
 
 @OptIn(ExperimentalGetImage::class)
 @Composable
@@ -58,8 +51,28 @@ fun ScanComposable(viewModel: MainViewModel, navigateBack: () -> Unit, userId: S
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
     var lastScannedCode = remember { "" }
 
+    // Check if camera permission is granted
+    val isCameraPermissionGranted = ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.CAMERA
+    ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
     LaunchedEffect(Unit) {
-        viewModel.resetScanState()
+        /*
+        * If camera permission is not granted, redirect the user to app settings
+        * Show a toast message prompting the user to grant the permission
+        * Else, Open app settings so the user can manually grant the camera permission
+        * */
+        if (!isCameraPermissionGranted) {
+            Toast.makeText(context, "Camera permission is required", Toast.LENGTH_SHORT).show()
+
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = android.net.Uri.fromParts("package", context.packageName, null)
+            }
+            context.startActivity(intent)
+        } else {
+            viewModel.resetScanState()
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -95,13 +108,18 @@ fun ScanComposable(viewModel: MainViewModel, navigateBack: () -> Unit, userId: S
                                                 "Scanned: $displayValue",
                                                 Toast.LENGTH_SHORT
                                             ).show()
-// TODO: fix isScanComplete to how a popup or animation
+
+                                            // Handle the scanned barcode
                                             viewModel.claimScan(
                                                 userId = userId,
                                                 scanData = displayValue,
-
                                                 onError = { errorMessage ->
                                                     println("Error while claiming: $errorMessage")
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Error: $errorMessage",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
                                                 },
                                                 onSuccess = {
 
@@ -110,7 +128,11 @@ fun ScanComposable(viewModel: MainViewModel, navigateBack: () -> Unit, userId: S
                                     }
                                 }
                                 .addOnFailureListener {
-                                    Log.d("Scan Activity", "Error: ${it.message}")
+                                    Toast.makeText(
+                                        context,
+                                        "Error: ${it.message}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                                 .addOnCompleteListener {
                                     imageProxy.close()

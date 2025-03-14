@@ -94,8 +94,8 @@ fun HelpComposable(modifier: Modifier = Modifier, navigateBack: () -> Unit) {
                 .padding(16.dp)
                 .border(
                     2.dp, Color.Gray, shape = RoundedCornerShape(8.dp)
-                ) // Border with color, width, and rounded corners
-                .padding(16.dp) // Optional padding inside the Box
+                )
+                .padding(16.dp)
         ) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -113,7 +113,7 @@ fun HelpComposable(modifier: Modifier = Modifier, navigateBack: () -> Unit) {
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    text = "2. Place the bottle in the holder.",
+                    text = "2. Place the bottle in the ReBottle Bin.",
                     fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.secondary
                 )

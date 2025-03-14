@@ -6,10 +6,14 @@ import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONException
@@ -25,7 +29,7 @@ class MainViewModel : ViewModel() {
     var userId: String = ""
 
     private val server: String =
-        "http://192.168.222.155:3000"
+        "http://192.168.1.9:3000"
     private val _isConnectedToServer = MutableLiveData<Boolean?>(null)
     val isConnectedToServer: LiveData<Boolean?> get() = _isConnectedToServer
 
@@ -43,6 +47,33 @@ class MainViewModel : ViewModel() {
 
     private val _scansLiveData = MutableLiveData<List<Scans>>()
     val scansLiveData: LiveData<List<Scans>> get() = _scansLiveData
+
+    // State to track if the user is searching or not
+    private val _isSearching = MutableStateFlow(false)
+    val isSearching = _isSearching.asStateFlow()
+
+    // State for the search text
+    private val _searchText = MutableStateFlow("")
+    val searchText = _searchText.asStateFlow()
+
+    private val rewardsFlow: Flow<List<RewardResponse>> = rewards.asFlow()
+
+    val filteredRewards = searchText.combine(rewardsFlow) { text, rewards ->
+        if (text.isBlank()) {
+            rewards
+        } else {
+            rewards.filter { it.title.contains(text, ignoreCase = true) }
+        }
+    }
+    // Function to change the search text
+    fun onSearchTextChange(newText: String) {
+        _searchText.value = newText
+    }
+
+    // Toggle search state (active or inactive)
+    fun onToggleSearch() {
+        _isSearching.value = !_isSearching.value
+    }
 
     companion object {
         private const val PREFERENCES_NAME = "auth_preferences"

@@ -44,7 +44,7 @@ fun LoginComposable(
             handleLogin(context, email, password) {
                 val jsonString = it.substringAfter(":").trim()
                 val obj = JSONObject(jsonString)
-                errorMessage = obj.getString("message") // Set the error message
+                errorMessage = obj.getString("message")
             }
         } catch (e: Exception) {
             errorMessage = e.message.toString()
@@ -108,7 +108,7 @@ fun LoginComposable(
                         unfocusedLabelColor = Color.Gray,
                         unfocusedContainerColor = Color.Transparent,
                         focusedTextColor = Color.Black,
-                        unfocusedTextColor = Color.Black
+                        unfocusedTextColor = Color.Black,
                     ),
                 )
 

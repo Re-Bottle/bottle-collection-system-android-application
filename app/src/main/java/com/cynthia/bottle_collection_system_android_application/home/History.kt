@@ -85,14 +85,12 @@ fun HistoryComposable(
         modifier = modifier
             .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.primary),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
     ) {
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 24.dp)
+                .padding(horizontal = 10.dp, vertical = 25.dp)
         ) {
             IconButton(
                 onClick = {
@@ -200,7 +198,7 @@ fun ScanHistoryCard(scanTransactions: List<Scans>) {
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.qr_code_scanner), // Replace with your "no data" icon
+                        painter = painterResource(id = R.drawable.scanner),
                         contentDescription = "No Data",
                         modifier = Modifier.size(50.dp)
                     )
