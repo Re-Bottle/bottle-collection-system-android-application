@@ -9,8 +9,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -33,6 +32,13 @@ fun HomeNavGraph(
     viewModel: MainViewModel
 ) {
     val navController: NavHostController = rememberNavController()
+
+    LaunchedEffect(Unit) {
+        viewModel.getScansByUser(viewModel.userId, onError = { errorMessage ->
+            println("Error loading rewards: $errorMessage")
+        })
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         NavHost(
             navController = navController,
@@ -43,15 +49,15 @@ fun HomeNavGraph(
                 HomeComposable(
                     navigateHelp = { navController.navigate("help") },
                     navigateToRewards = { navController.navigate("rewards") },
-                    points = viewModel.points,
-                    name = viewModel.name
+                    points = viewModel.totalPoints.value,
+                    name = viewModel.name,
                 )
             }
             composable("history") {
                 HistoryComposable(
                     viewModel,
                     navigateBack = { navController.popBackStack("home", false) },
-                    points = viewModel.points,
+                    points = viewModel.totalPoints.value,
                     name = viewModel.name,
                 )
             }
@@ -62,6 +68,7 @@ fun HomeNavGraph(
 
             composable("account") {
                 AccountComposable(
+                    viewModel,
                     navigateBack = { navController.popBackStack("home", false) },
                     handleLogout = logout,
                     name = viewModel.name

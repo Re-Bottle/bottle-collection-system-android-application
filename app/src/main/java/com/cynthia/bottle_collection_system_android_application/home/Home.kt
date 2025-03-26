@@ -28,12 +28,11 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.MutableLiveData
 import com.cynthia.bottle_collection_system_android_application.R
 import com.cynthia.bottle_collection_system_android_application.ui.theme.BottlecollectionsystemandroidapplicationTheme
 import kotlinx.coroutines.delay
@@ -87,10 +86,11 @@ fun TypewriterText(
 fun HomeComposable(
     navigateHelp: () -> Unit,
     navigateToRewards: () -> Unit,
-    points: Int = 0,
+    points: Int? = 0,
     modifier: Modifier = Modifier,
     name: String = "Test"
 ) {
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -190,6 +190,6 @@ fun HomeComposable(
 @Composable
 fun CustomBottomNavigationPreview() {
     BottlecollectionsystemandroidapplicationTheme {
-        HomeComposable(navigateHelp = {}, navigateToRewards = {}, name = "Test")
+        HomeComposable(navigateHelp = {}, navigateToRewards = {}, name = "Test", points = 0)
     }
 }

@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.cynthia.bottle_collection_system_android_application.ui.theme.BottlecollectionsystemandroidapplicationTheme
+import org.json.JSONException
 import org.json.JSONObject
 
 
@@ -98,12 +99,17 @@ fun RegisterComposable(
 
     val handleRegisterClick = {
         isButtonEnabled = false
-        handleRegister(name, email, password) {
+        handleRegister(name, email, password) {response ->
             openAlertDialog = true
             messageTitle = "Could not register"
-            val jsonString = it.substringAfter(":").trim()
-            val obj = JSONObject(jsonString)
-            messageContent = obj.getString("message")
+
+            try {
+                val obj = JSONObject(response)
+                messageContent = obj.getString("message")
+            } catch (e: JSONException) {
+                messageContent = "An error occurred while processing the response."
+            }
+
             buttonText = "Retry"
             isButtonEnabled = true
         }

@@ -23,13 +23,13 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class MainViewModel : ViewModel() {
-    var points: Int = 0
     private var email: String = ""
     var name: String = ""
     var userId: String = ""
+    var points: Int = 0
 
     private val server: String =
-        "http://192.168.1.9:3000"
+        "http://10.0.2.2:3000"
     private val _isConnectedToServer = MutableLiveData<Boolean?>(null)
     val isConnectedToServer: LiveData<Boolean?> get() = _isConnectedToServer
 
@@ -55,6 +55,14 @@ class MainViewModel : ViewModel() {
     // State for the search text
     private val _searchText = MutableStateFlow("")
     val searchText = _searchText.asStateFlow()
+
+    // Track points
+    private val _totalPoints = MutableLiveData(0)
+    val totalPoints : LiveData<Int> get() = _totalPoints
+
+    private val _bottleCount = MutableLiveData(0)
+    val bottleCount : LiveData<Int> get() = _bottleCount
+
 
     private val rewardsFlow: Flow<List<RewardResponse>> = rewards.asFlow()
 
@@ -415,7 +423,7 @@ class MainViewModel : ViewModel() {
                 connection.outputStream.write(jsonBody.toString().toByteArray())
                 when (val responseCode = connection.responseCode) {
                     HttpURLConnection.HTTP_OK -> {
-                        points = 0
+                        var total = 0
                         val inputStream = connection.inputStream
                         val response = inputStream.bufferedReader().use { it.readText() }
                         val jsonResponse = JSONObject(response)
@@ -433,8 +441,11 @@ class MainViewModel : ViewModel() {
                                 bottleType = scanObject.getInt("bottleType")
                             )
                             scanList.add(scan)
-                            points += (scan.bottleType).toInt()
+                            total  += (scan.bottleType).toInt()
                         }
+
+                        _bottleCount.postValue(scansJsonArray.length())
+                        _totalPoints.postValue(total)
 
                         withContext(Dispatchers.Main) {
                             _scansLiveData.postValue(scanList)

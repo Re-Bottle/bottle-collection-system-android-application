@@ -20,6 +20,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,17 +35,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cynthia.bottle_collection_system_android_application.R
 import com.cynthia.bottle_collection_system_android_application.ui.theme.BottlecollectionsystemandroidapplicationTheme
+import com.cynthia.bottle_collection_system_android_application.viewmodel.MainViewModel
 
 
 @Composable
 fun AccountComposable(
+    viewModel: MainViewModel,
     modifier: Modifier = Modifier,
     navigateBack: () -> Unit,
     handleLogout: () -> Unit,
     name: String
 ) {
-    val bottleScannedNumber by remember { mutableIntStateOf(0) }
-    val pointsEarned by remember { mutableIntStateOf(0) }
+    val totalPoints by viewModel.totalPoints.observeAsState(0)
+    val bottleScannedNumber by viewModel.bottleCount.observeAsState(0)
+
     var isButtonEnabled by remember { mutableStateOf(true) }
     var upiID by remember { mutableStateOf("Not Set") }
     var openAlertDialog by remember { mutableStateOf(false) }
@@ -233,20 +237,12 @@ fun AccountComposable(
                     color = Color.Gray
                 )
                 Text(
-                    text = pointsEarned.toString(),
+                    text = totalPoints.toString(),
                     fontSize = 20.sp,
                     color = Color.Gray
                 )
             }
-            Text(
-                text = "Bottles Recycled: ",
-                fontSize = 20.sp,
-                color = Color.Black,
-                modifier = Modifier.align(
-                    alignment = Alignment.CenterHorizontally
-                )
-            )
-            // Show Monthly wise graph
+                        // Display Monthly graph
             Text(
                 text = upiID,
                 fontSize = 20.sp,
@@ -302,6 +298,7 @@ fun AccountComposable(
 fun AccountComposablePreview() {
     BottlecollectionsystemandroidapplicationTheme {
         AccountComposable(
+            viewModel = MainViewModel(),
             navigateBack = { },
             handleLogout = {},
             name = ""

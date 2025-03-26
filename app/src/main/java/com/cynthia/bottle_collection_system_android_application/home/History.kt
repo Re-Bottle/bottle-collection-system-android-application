@@ -45,6 +45,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.MutableLiveData
 import com.cynthia.bottle_collection_system_android_application.R
 import com.cynthia.bottle_collection_system_android_application.ui.theme.BottlecollectionsystemandroidapplicationTheme
 import com.cynthia.bottle_collection_system_android_application.viewmodel.MainViewModel
@@ -56,14 +57,14 @@ fun HistoryComposable(
     viewModel: MainViewModel,
     modifier: Modifier = Modifier,
     navigateBack: () -> Unit,
-    points: Int,
+    points: Int?,
     name: String
 ) {
     val isLoading by viewModel.isLoading.collectAsState()
     val scans by viewModel.scansLiveData.observeAsState(emptyList())
+//    val totalPoints by viewModel.totalPoints.observeAsState(0)
 
     LaunchedEffect(Unit) {
-//        points = 0
         viewModel.getScansByUser(viewModel.userId, onError = { errorMessage ->
             println("Error loading rewards: $errorMessage")
         })
