@@ -46,8 +46,11 @@ fun AccountComposable(
     handleLogout: () -> Unit,
     name: String
 ) {
-    val totalPoints by viewModel.totalPoints.observeAsState(0)
+//    val totalPoints by viewModel.totalPoints.observeAsState(0)
+//    val bottleScannedNumber by viewModel.bottleCount.observeAsState(0)
     val bottleScannedNumber by viewModel.bottleCount.observeAsState(0)
+    val totalPoints by viewModel.totalPoints.observeAsState(0)
+
 
     var isButtonEnabled by remember { mutableStateOf(true) }
     var upiID by remember { mutableStateOf("Not Set") }

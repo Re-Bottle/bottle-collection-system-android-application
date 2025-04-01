@@ -3,6 +3,7 @@ package com.cynthia.bottle_collection_system_android_application.home
 import android.Manifest
 import android.content.Intent
 import android.provider.Settings
+import android.util.Log
 import android.util.Size
 import android.view.Surface
 import android.widget.Toast
@@ -121,8 +122,8 @@ fun ScanComposable(viewModel: MainViewModel, navigateBack: () -> Unit, userId: S
                                                         Toast.LENGTH_SHORT
                                                     ).show()
                                                 },
-                                                onSuccess = {
-
+                                                onSuccess = { message->
+                                                    Log.d("Claim Scan", "ScanComposable: $message")
                                                 })
                                         }
                                     }

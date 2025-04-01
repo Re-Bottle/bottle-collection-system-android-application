@@ -68,6 +68,9 @@ fun HistoryComposable(
         viewModel.getScansByUser(viewModel.userId, onError = { errorMessage ->
             println("Error loading rewards: $errorMessage")
         })
+        viewModel.fetchUserStats { errorMessage ->
+            println("Error loading user stats: $errorMessage")
+        }
     }
 
 

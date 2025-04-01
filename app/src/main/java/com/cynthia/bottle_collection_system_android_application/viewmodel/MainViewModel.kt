@@ -8,6 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +27,6 @@ class MainViewModel : ViewModel() {
     private var email: String = ""
     var name: String = ""
     var userId: String = ""
-    var points: Int = 0
 
     private val server: String =
         "http://10.0.2.2:3000"
@@ -65,6 +65,8 @@ class MainViewModel : ViewModel() {
 
 
     private val rewardsFlow: Flow<List<RewardResponse>> = rewards.asFlow()
+    private val userStatsLiveData = MutableLiveData<UserStatsResponse>()
+    val claimRewardLiveData = MutableLiveData<String>()
 
     val filteredRewards = searchText.combine(rewardsFlow) { text, rewards ->
         if (text.isBlank()) {
@@ -363,6 +365,41 @@ class MainViewModel : ViewModel() {
         }
     }
 
+
+    // Function to get stats of the user
+    fun fetchUserStats(onError: (String) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val url = URL("$server/reward/stats/$userId")
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "GET"
+                connection.setRequestProperty("Content-Type", "application/json")
+
+                val responseCode = connection.responseCode
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    val response = connection.inputStream.bufferedReader().use { it.readText() }
+                    val jsonResponse = JSONObject(response)
+
+                    // Extract bottleCount and totalPoints from the JSON response
+                    val bottleCount = jsonResponse.getInt("totalBottles")
+                    val totalPoints = jsonResponse.getInt("totalPoints")
+
+                    withContext(Dispatchers.Main) {
+                        _bottleCount.value = bottleCount
+                        _totalPoints.value = totalPoints
+                    }
+                } else {
+                    onError("Error: HTTP $responseCode")
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    onError("Exception: ${e.message}")
+                }
+            }
+        }
+    }
+
+
     //Function to display all the rewards
     fun fetchRewardsFromServer(onError: (String) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -383,10 +420,11 @@ class MainViewModel : ViewModel() {
                     for (i in 0 until rewardsJsonArray.length()) {
                         val rewardObject = rewardsJsonArray.getJSONObject(i)
                         val reward = RewardResponse(
+                            id = rewardObject.getString("id"),
                             title = rewardObject.getString("rewardName"),
                             description = rewardObject.getString("rewardDescription"),
-                            isClaimed = rewardObject.getBoolean("rewardActiveStatus"),
-                            name = rewardObject.getString("rewardPoints")
+                            points = rewardObject.getInt("rewardPoints"),
+                            isClaimed = rewardObject.getBoolean("rewardActiveStatus")
                         )
                         rewardList.add(reward)
                     }
@@ -423,7 +461,7 @@ class MainViewModel : ViewModel() {
                 connection.outputStream.write(jsonBody.toString().toByteArray())
                 when (val responseCode = connection.responseCode) {
                     HttpURLConnection.HTTP_OK -> {
-                        var total = 0
+//                        var total = 0
                         val inputStream = connection.inputStream
                         val response = inputStream.bufferedReader().use { it.readText() }
                         val jsonResponse = JSONObject(response)
@@ -441,11 +479,11 @@ class MainViewModel : ViewModel() {
                                 bottleType = scanObject.getInt("bottleType")
                             )
                             scanList.add(scan)
-                            total  += (scan.bottleType).toInt()
+//                            total  += (scan.bottleType).toInt()
                         }
 
-                        _bottleCount.postValue(scansJsonArray.length())
-                        _totalPoints.postValue(total)
+//                        _bottleCount.postValue(scansJsonArray.length())
+//                        _totalPoints.postValue(total)
 
                         withContext(Dispatchers.Main) {
                             _scansLiveData.postValue(scanList)
@@ -474,7 +512,7 @@ class MainViewModel : ViewModel() {
     fun claimScan(
         userId: String,
         scanData: String,
-        onSuccess: () -> Unit,
+        onSuccess: (String) -> Unit,
         onError: (String) -> Unit
     ) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -498,7 +536,8 @@ class MainViewModel : ViewModel() {
                 if (responseCode == HttpURLConnection.HTTP_OK) {
                     withContext(Dispatchers.Main) {
                         _isScanComplete.value = true
-                        onSuccess()
+                        val message = connection.inputStream.bufferedReader().readText()
+                        onSuccess("Message: $message")
                     }
                 }
                 if (responseCode == HttpURLConnection.HTTP_BAD_REQUEST) {
@@ -516,6 +555,74 @@ class MainViewModel : ViewModel() {
                 withContext(Dispatchers.Main) {
                     onError("Error: ${e.localizedMessage}")
                 }
+            }
+        }
+    }
+
+
+    // Function to fetch user stats
+    fun getUserStats(userId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val url = URL("$server/stats/$userId")
+                val connection = (url.openConnection() as HttpURLConnection).apply {
+                    requestMethod = "GET"
+                    setRequestProperty("Content-Type", "application/json")
+                    connectTimeout = 5000
+                    readTimeout = 5000
+                }
+
+                val responseCode = connection.responseCode
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    val response = connection.inputStream.bufferedReader().readText()
+                    val jsonResponse = JSONObject(response)
+                    val bottleCount = jsonResponse.getInt("bottleCount")
+                    val totalPoints = jsonResponse.getInt("totalPoints")
+
+                    userStatsLiveData.postValue(UserStatsResponse(bottleCount, totalPoints))
+                } else {
+                    Log.e("NetworkError", "Failed to fetch stats. Response code: $responseCode")
+                }
+            } catch (e: Exception) {
+                Log.e("NetworkError", "Error fetching user stats: ${e.message}")
+            }
+        }
+    }
+
+    // Function to claim reward
+    fun claimReward(userId: String, rewardId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val url = URL("$server/reward/claim")
+                val connection = (url.openConnection() as HttpURLConnection).apply {
+                    requestMethod = "POST"
+                    setRequestProperty("Content-Type", "application/json")
+                    doOutput = true
+                    connectTimeout = 5000
+                    readTimeout = 5000
+                }
+
+                val requestBody = JSONObject().apply {
+                    put("userId", userId)
+                    put("rewardId", rewardId)
+                }.toString()
+
+                connection.outputStream.use { outputStream ->
+                    outputStream.write(requestBody.toByteArray())
+                }
+
+                val responseCode = connection.responseCode
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    val response = connection.inputStream.bufferedReader().readText()
+                    val jsonResponse = JSONObject(response)
+                    val message = jsonResponse.getString("message")
+
+                    claimRewardLiveData.postValue(message)
+                } else {
+                    Log.e("NetworkError", "Failed to claim reward. Response code: $responseCode")
+                }
+            } catch (e: Exception) {
+                Log.e("NetworkError", "Error claiming reward: ${e.message}")
             }
         }
     }

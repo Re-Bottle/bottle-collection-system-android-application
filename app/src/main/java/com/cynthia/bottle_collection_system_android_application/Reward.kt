@@ -1,5 +1,7 @@
 package com.cynthia.bottle_collection_system_android_application
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -44,14 +46,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LifecycleOwner
 import com.cynthia.bottle_collection_system_android_application.viewmodel.MainViewModel
 import com.cynthia.bottle_collection_system_android_application.viewmodel.RewardResponse
+
 
 @Composable
 fun RewardCard(reward: RewardResponse, onClick: () -> Unit, logo: ImageBitmap? = null) {
@@ -141,13 +146,13 @@ fun RewardCard(reward: RewardResponse, onClick: () -> Unit, logo: ImageBitmap? =
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RewardComposable(viewModel: MainViewModel, navigateBack: () -> Unit) {
+fun RewardComposable(userId: String, viewModel: MainViewModel, navigateBack: () -> Unit) {
     val rewards by viewModel.rewards.observeAsState(emptyList())
     val searchText by viewModel.searchText.collectAsState()
     val isSearching by viewModel.isSearching.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val filteredRewards by viewModel.filteredRewards.collectAsState(emptyList())
-
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.fetchRewardsFromServer(onError = { errorMessage ->
@@ -244,7 +249,8 @@ fun RewardComposable(viewModel: MainViewModel, navigateBack: () -> Unit) {
                     items(filteredRewards) { reward ->
                         RewardCard(
                             reward = reward,
-                            onClick = { rewardClicked(reward) }
+                            onClick = { rewardClicked(userId, rewardId = reward.id, viewModel, context) }
+
                         )
                     }
                 }
@@ -255,7 +261,7 @@ fun RewardComposable(viewModel: MainViewModel, navigateBack: () -> Unit) {
             items(rewards) { reward ->
                 RewardCard(
                     reward = reward,
-                    onClick = { rewardClicked(reward) }
+                    onClick = { rewardClicked(userId, rewardId = reward.id, viewModel, context) }
                 )
             }
         }
@@ -264,13 +270,16 @@ fun RewardComposable(viewModel: MainViewModel, navigateBack: () -> Unit) {
 
 
 
-fun rewardClicked(reward: RewardResponse) {
-    println(reward)
-}
+fun rewardClicked(userId: String, rewardId: String, viewModel: MainViewModel, context: Context) {
+    viewModel.claimReward(userId, rewardId)
 
+    viewModel.claimRewardLiveData.observeForever { message ->
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
 fun RewardComposablePreview() {
-    RewardComposable(viewModel = MainViewModel(), navigateBack = {})
+    RewardComposable(userId="new", viewModel = MainViewModel(), navigateBack = {})
 }
